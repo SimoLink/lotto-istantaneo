@@ -1,6 +1,6 @@
 //INSERIRE PER LOGIN. RIVEDI TUTTO POICHé HO COPIATO DAL LAB 13
 /**  NEW **/
-import { dao } from './dao.mjs';
+import { db } from './dao.mjs';
 import crypto from 'crypto';
 
 /*export const getUser = (email, password) => {
@@ -39,7 +39,7 @@ export const getUserById = (id) => {
         resolve({error: 'User not found!'}); 
       }
       else {
-        const user = {id: row.id, username: row.email, name: row.name};
+        const user = {id: row.id, username: row.username, punti: row.punti};
         resolve(user);
       }
     });

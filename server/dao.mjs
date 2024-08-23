@@ -1,7 +1,8 @@
 import sqlite from 'sqlite3';
+import { getUserById } from './userDao.mjs';
 
 //apertura del db
-const db = new sqlite.Database('./db.sqlite', (err) => {
+export const db = new sqlite.Database('./db.sqlite', (err) => {
     if(err) throw err;
 });
 
@@ -18,8 +19,7 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
     });
   }
 
-  //calcolo vincita
- async function getPuntataEstrazione(idUtente, idEstrazione) {
+  async function getPuntataEstrazione(idUtente, idEstrazione) {
     return new Promise((resolve, reject) => {
       let queryPuntata = 'SELECT totalePuntate, puntata1, puntata2, puntata3 FROM puntate WHERE idUtente = ? AND idEstrazione = ?';
       
@@ -43,8 +43,9 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
       });
     });
   }
-
-  function calcoloVincita(puntata, estrazione) {
+  
+  //calcolo vincita
+  async function calcoloVincita(puntata, estrazione) {
     const numeriEstrazione = [estrazione.numero1, estrazione.numero2, estrazione.numero3, estrazione.numero4, estrazione.numero5];
     const numeriPuntata = [puntata.puntata1, puntata.puntata2, puntata.puntata3].filter(num => num !== null);
     
@@ -71,20 +72,35 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
     
     return puntiVinti;
   }
-
-function  aggiornaPunti(idUtente, puntiVinti) {
-    return new Promise((resolve, reject) => {
-      const query = 'UPDATE utenti SET punti = ? WHERE id = ?';
-      
-      db.run(query, [puntiVinti, idUtente], function(err) {
-        if (err) {
-          reject(err); // Gestione errore
-        } else {
-          resolve(this.changes); // Restituisce il numero di righe aggiornate
-        }
+  
+  function  aggiornaPunti(idUtente, puntiAggiornati) {
+      return new Promise((resolve, reject) => {
+        const query = 'UPDATE utenti SET punti = ? WHERE id = ?';
+        
+        db.run(query, [puntiAggiornati, idUtente], function(err) {
+          if (err) {
+            reject(err); // Gestione errore
+          } else {
+            resolve(this.changes); // Restituisce il numero di righe aggiornate
+          }
+        });
       });
-    });
+    }
+    
+  async function processoScommessa(idUtente, idEstrazione) {
+    const { puntata, estrazione } = await getPuntataEstrazione(idUtente, idEstrazione);
+    const puntiVinti = await calcoloVincita(puntata, estrazione);
+
+    // Recupera il saldo attuale dell'utente
+    const user = await getUserById(idUtente);
+    const puntiAttuali = user.punti;
+    console.log(puntiAttuali)
+    // Calcola il nuovo saldo dei punti
+    const puntiAggiornati = puntiAttuali + puntiVinti;
+    console.log(puntiAggiornati)
+    await aggiornaPunti(idUtente, puntiAggiornati);
   }
+
 
   async function testCalculateWinnings(idUtente, idEstrazione) {
     try {
@@ -98,7 +114,7 @@ function  aggiornaPunti(idUtente, puntiVinti) {
   }
   
   testCalculateWinnings(1, 2); // Usa un ID di esempio
-
+  processoScommessa(1, 2);
 
   async function testCreateBet() {
     try {
@@ -117,143 +133,3 @@ function  aggiornaPunti(idUtente, puntiVinti) {
   }
   
   testCreateBet();
-
-
-
-
-
-
-
-
-
-
-/** QUESTIONS **/
-// get all the questions
-export const listQuestions = () => {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT question.*, user.email FROM question JOIN user ON question.authorId = user.id';
-      db.all(sql, [], (err, rows) => {
-        if (err)
-          reject(err);
-        else {
-          const questions = rows.map((q) => new Question(q.id, q.text, q.email, q.date));
-          resolve(questions);
-        }
-      });
-    });
-  }
-  
-  // get a question given its id
-  export const getQuestion = (id) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT question.*, user.email FROM question JOIN user ON question.authorId = user.id WHERE question.id = ?';
-      db.get(sql, [id], (err, row) => {
-        if (err)
-          reject(err);
-        else if (row === undefined)
-          resolve({error: "Question not available, check the inserted id."});
-        else {
-          resolve(new Question(row.id, row.text, row.email, row.date));
-        }
-      });
-    });
-  }
-  
-  // add a new question
-  export const addQuestion = (question) => {
-    return new Promise((resolve, reject) => {
-      let sql = 'SELECT id from user WHERE email = ?';
-      db.get(sql, [question.email], (err, row) => {
-        if (err)
-          reject(err);
-        else if (row === undefined)
-          resolve({error: "Author not available, check the inserted email."});
-        else {
-          sql = 'INSERT INTO question(text, authorId, date) VALUES(?,?,DATE(?))';
-          db.run(sql, [question.text, row.id, question.date.toISOString()], function (err) {
-            if (err)
-              reject(err);
-            else
-              resolve(this.lastID);
-          });
-        }
-      });
-    });
-  }
-  
-  /** ANSWERS **/
-  
-  // get all the answer of a given question
-  export const listAnswersOf = (questionId) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT answer.*, user.email FROM answer JOIN user ON answer.authorId=user.id WHERE answer.questionId = ?';
-      db.all(sql, [questionId], (err, rows) => {
-        if (err)
-          reject(err)
-        else {
-          const answers = rows.map((ans) => new Answer(ans.id, ans.text, ans.email, ans.date, ans.score));
-          resolve(answers);
-        }
-      });
-    });
-  }
-  
-  // add a new answer
-  export const addAnswer = (answer, questionId) => {
-    return new Promise((resolve, reject) => {
-      let sql = 'SELECT id from user WHERE email = ?';
-      db.get(sql, [answer.email], (err, row) => {
-        if (err)
-          reject(err);
-        else if (row === undefined)
-          resolve({error: "Author not available, check the inserted email."});
-        else {
-          sql = "INSERT INTO answer(text, authorId, date, score, questionId) VALUES (?, ?, DATE(?), ?, ?)";
-          db.run(sql, [answer.text, row.id, answer.date, answer.score, questionId], function (err) {
-            if (err)
-              reject(err);
-            else
-              resolve(this.lastID);
-          });
-        }
-      });
-    });
-  }
-  
-  // update an existing answer
-  export const updateAnswer = (answer) => {
-    return new Promise((resolve, reject) => {
-      let sql = 'SELECT id from user WHERE email = ?';
-      db.get(sql, [answer.email], (err, row) => {
-        if (err)
-          reject(err);
-        else if (row === undefined)
-          resolve({error: "Author not available, check the inserted email."});
-        else {
-          sql = "UPDATE answer SET text = ?, authorId = ?, date = DATE(?), score = ? WHERE id = ?"
-          db.run(sql, [answer.text, row.id, answer.date, answer.score, answer.id], function (err) {
-            if (err)
-              reject(err);
-            else
-              resolve(this.lastID);
-          });
-        }
-      });
-    });
-  }
-  
-  // vote for an answer
-  export const voteAnswer = (answerId, vote) => {
-    return new Promise((resolve, reject) => {
-      const delta = vote === 'upvote' ? 1 : -1;
-      const sql = "UPDATE answer SET score = score + ? WHERE id = ?";
-      db.run(sql, [delta, answerId], function (err) {
-        if(err){
-          reject(err);
-        }
-        else {
-          resolve(this.changes) //restituisce il numero di righe modificate dalla query
-        }
-      });
-    });
-  }
