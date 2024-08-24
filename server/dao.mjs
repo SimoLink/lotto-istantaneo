@@ -19,7 +19,47 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
     });
   }
 
-  async function getPuntataEstrazione(idUtente, idEstrazione) {
+  export const getPunti = (idUtente) => {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT punti FROM utenti WHERE id = ?';
+      
+      db.get(query, [idUtente], (err, row) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(row.punti);
+      });
+    });
+  };
+
+  export const aggiornamentoPuntiDopoPuntata = (idUtente, totalePuntate) => {
+    return new Promise((resolve, reject) => {
+      getPunti(idUtente)
+        .then(punti => {
+          if (punti >= totalePuntate) {
+            const query = 'UPDATE utenti SET punti = punti - ? WHERE id = ?';
+            
+            db.run(query, [totalePuntate, idUtente], function(err) {
+              if (err) {
+                reject(err);
+                return;
+              }
+              resolve({ success: true, changes: this.changes });
+            });
+          } else {
+            resolve({ success: false, message: 'Punti insufficienti' });
+          }
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  };
+  console.log(await aggiornamentoPuntiDopoPuntata(1, 5));
+
+  //Recupera estrazione e relativa puntata
+  export const getPuntataEstrazione = (idUtente, idEstrazione) => {
     return new Promise((resolve, reject) => {
       let queryPuntata = 'SELECT totalePuntate, puntata1, puntata2, puntata3 FROM puntate WHERE idUtente = ? AND idEstrazione = ?';
       
@@ -31,63 +71,69 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
           return reject(err);
         }
         
-        // Recupera l'estrazione
-        db.get(queryEstrazione, [idEstrazione], (err, estrazione) => {
-          if (err) {
-            return reject(err);
-          }
+      // Recupera l'estrazione
+      db.get(queryEstrazione, [idEstrazione], (err, estrazione) => {
+        if (err) {
+          return reject(err);
+        }
           
-          // Restituisci puntata e estrazione
-          resolve({ puntata, estrazione });
+      // Restituisci puntata e estrazione
+      resolve({ puntata, estrazione });
         });
       });
     });
   }
   
-  //calcolo vincita
-  async function calcoloVincita(puntata, estrazione) {
-    const numeriEstrazione = [estrazione.numero1, estrazione.numero2, estrazione.numero3, estrazione.numero4, estrazione.numero5];
-    const numeriPuntata = [puntata.puntata1, puntata.puntata2, puntata.puntata3].filter(num => num !== null);
-    
-    // Calcola i numeri indovinati
-    const numeriIndovinati = numeriPuntata.filter(num => numeriEstrazione.includes(num)).length;
-    
-    let puntiVinti = 0;
-    switch (puntata.totalePuntate) {
-      case 5:
-        if (numeriIndovinati === 1) puntiVinti = 10;
-        break;
-      case 10:
-        if (numeriIndovinati === 1) puntiVinti = 10;
-        if (numeriIndovinati === 2) puntiVinti = 20;
-        break;
-      case 15:
-        if (numeriIndovinati === 1) puntiVinti = 10;
-        if (numeriIndovinati === 2) puntiVinti = 20;
-        if (numeriIndovinati === 3) puntiVinti = 30;
-        break;
-      default:
-        break;
-    }
-    
-    return puntiVinti;
-  }
-  
-  function  aggiornaPunti(idUtente, puntiAggiornati) {
-      return new Promise((resolve, reject) => {
-        const query = 'UPDATE utenti SET punti = ? WHERE id = ?';
-        
-        db.run(query, [puntiAggiornati, idUtente], function(err) {
-          if (err) {
-            reject(err); // Gestione errore
+  //Aggiorna i punti di uno specifico utente sovrascrivendo i punti precedenti
+  export const aggiornaPunti = (idUtente, puntiAggiornati) => {
+    return new Promise((resolve, reject) => {
+      const query = 'UPDATE utenti SET punti = ? WHERE id = ?';
+      
+      db.run(query, [puntiAggiornati, idUtente], function(err) {
+        if (err) {
+            reject(err); 
           } else {
             resolve(this.changes); // Restituisce il numero di righe aggiornate
           }
         });
       });
     }
+
+    //calcolo vincita
+    export const calcoloVincita = (puntata, estrazione) => {
+      const numeriEstrazione = [estrazione.numero1, estrazione.numero2, estrazione.numero3, estrazione.numero4, estrazione.numero5];
+      const numeriPuntata = [puntata.puntata1, puntata.puntata2, puntata.puntata3].filter(num => num !== null);
+      
+      // Calcola i numeri indovinati
+      const numeriIndovinati = numeriPuntata.filter(num => numeriEstrazione.includes(num)).length;
+      
+      let puntiVinti = 0;
+      switch (puntata.totalePuntate) {
+        case 5:
+          if (numeriIndovinati === 1) puntiVinti = 10;
+          break;
+        case 10:
+          if (numeriIndovinati === 1) puntiVinti = 10;
+          if (numeriIndovinati === 2) puntiVinti = 20;
+          break;
+        case 15:
+          if (numeriIndovinati === 1) puntiVinti = 10;
+          if (numeriIndovinati === 2) puntiVinti = 20;
+          if (numeriIndovinati === 3) puntiVinti = 30;
+          break;
+        default:
+          break;
+      }
+      
+      return puntiVinti;
+    }
     
-  async function processoScommessa(idUtente, idEstrazione) {
+    /* Funzione che avvia l'intero processo di una scommessa:
+    1. dato un utente ed una estrazione, restituisce la puntata e l'estrazione
+    2. data la puntata e l'estrazione, calcola il valore della vincita
+    3. recupera i punti dell'utente e aggiorna i punti */
+    export const processoScommessa = async (idUtente, idEstrazione) => {
+    try {
     const { puntata, estrazione } = await getPuntataEstrazione(idUtente, idEstrazione);
     const puntiVinti = await calcoloVincita(puntata, estrazione);
 
@@ -99,8 +145,58 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
     const puntiAggiornati = puntiAttuali + puntiVinti;
     console.log(puntiAggiornati)
     await aggiornaPunti(idUtente, puntiAggiornati);
+  } catch (err) {
+    console.error('Errore durante il processo della scommessa:', err);
+  }
   }
 
+  export const classifica = () => {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT username, punti FROM utenti ORDER BY punti DESC LIMIT 3';
+      
+      db.all(query, [], (err, rows) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(rows);
+      });
+    });
+  };
+
+  export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero5) => {
+    return new Promise((resolve, reject) => {
+      const query = 'INSERT INTO estrazioni (numero1, numero2, numero3, numero4, numero5) VALUES (?, ?, ?, ?, ?)';
+      
+      db.run(query, [numero1, numero2, numero3, numero4, numero5], function(err) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve({ idEstrazione: this.lastID });  // Restituisce l'id della nuova estrazione creata
+      });
+    });
+  };
+
+  console.log(await inserimentoEstrazione(20, 21, 22, 23, 24));
+
+  export const getUltimaEstrazione = () => {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT * FROM estrazioni ORDER BY id DESC LIMIT 1';
+      
+      db.get(query, [], (err, row) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(row);  // Restituisce l'ultima estrazione trovata
+      });
+    });
+  };
+  console.log(await getUltimaEstrazione());
+
+//FUNZIONI DI TEST, ELIMINA
+/*
 
   async function testCalculateWinnings(idUtente, idEstrazione) {
     try {
@@ -132,4 +228,4 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
     }
   }
   
-  testCreateBet();
+  testCreateBet();*/
