@@ -1,11 +1,5 @@
-import sqlite from 'sqlite3';
 import { getUserById } from './userDao.mjs';
-
-//apertura del db
-export const db = new sqlite.Database('./db.sqlite', (err) => {
-    if(err) throw err;
-});
-
+import { db } from './db.mjs';
 // inserimento nuova puntata
 export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3) => {
   return new Promise((resolve, reject) => {
@@ -57,6 +51,18 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
     });
   };
   console.log(await aggiornamentoPuntiDopoPuntata(1, 5));
+
+  /* Funzione che:
+    1. inserisce una nuova puntata
+    2. diminuisce il totale dei punti dell'utente */
+    export const processoPuntata = async (idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3) => {
+      try {
+      await nuovaPuntata(idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3);
+      await aggiornamentoPuntiDopoPuntata(idUtente, totalePuntate);
+    } catch (err) {
+      console.error('Errore durante il processo della puntata:', err);
+    }
+    }
 
   //Recupera estrazione e relativa puntata
   export const getPuntataEstrazione = (idUtente, idEstrazione) => {

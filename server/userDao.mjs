@@ -1,6 +1,6 @@
 //INSERIRE PER LOGIN. RIVEDI TUTTO POICHé HO COPIATO DAL LAB 13
 /**  NEW **/
-import { db } from './dao.mjs';
+import { db } from './db.mjs';
 import crypto from 'crypto';
 
 /*export const getUser = (email, password) => {
