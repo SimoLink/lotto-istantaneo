@@ -1,0 +1,11 @@
+POST http://localhost:3001/api/puntate
+content-type: application/json
+
+{
+  "idUtente": 2,
+  "idEstrazione": 2, 
+  "totalePuntate": 15,
+  "puntata1": 88,
+  "puntata2": 10,
+  "puntata3": 3
+}

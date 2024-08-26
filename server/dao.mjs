@@ -22,11 +22,11 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
           reject(err);
           return;
         }
-        resolve(row.punti);
+        resolve(row);
       });
     });
   };
-
+console.log(await getPunti(1));
   export const aggiornamentoPuntiDopoPuntata = (idUtente, totalePuntate) => {
     return new Promise((resolve, reject) => {
       getPunti(idUtente)
@@ -165,11 +165,10 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
           reject(err);
           return;
         }
-        resolve(rows);
+        resolve(rows.map(row => ({ username: row.username, punti: row.punti })));
       });
     });
   };
-
   export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero5) => {
     return new Promise((resolve, reject) => {
       const query = 'INSERT INTO estrazioni (numero1, numero2, numero3, numero4, numero5) VALUES (?, ?, ?, ?, ?)';
