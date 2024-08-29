@@ -1,8 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import NavHeader from './NavHeader';
-import Estrazione from './Estrazione';
+import NavHeader from './components/NavHeader';
+import Estrazione from './components/Estrazione';
 import { Container } from 'react-bootstrap';
+import FormScommessa from './components/FormScommessa';
+import { useState } from 'react';
 
 const fakeEstrazione = {
   id: 53,
@@ -16,12 +18,18 @@ const fakeEstrazione = {
 const fakeBudget = 80;
 
 function App() {
+  const [puntata, setPuntata] = useState([]);
+
+  const aggiungiPuntata = (newPuntata) => {
+    setPuntata(oldPuntata => {return oldPuntata.concat(newPuntata)});
+  }
 
   return (
     <>
       <NavHeader ></NavHeader>
       <Container fluid className='mt-3'>
         <Estrazione estrazione={fakeEstrazione} budget={fakeBudget}></Estrazione>
+        <FormScommessa aggiungiPuntata={aggiungiPuntata}></FormScommessa>
       </Container>
     </>
   )

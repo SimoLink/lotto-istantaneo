@@ -74,7 +74,7 @@
   ```
 
   - response status: `201 Created` (success), `500 Internal Server Error` (generic error), `400 Bad Request` (invalid request)
-- GET `/api/estrazioni/ultima`
+- GET `/api/estrazioneCorrente`
   - request parameters: _None_
   - request body: _None_
   - response body content: Restituisce i numeri dell'ultima estrazione.

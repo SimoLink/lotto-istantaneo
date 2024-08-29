@@ -1,12 +1,7 @@
 import { Col, Row, Table } from 'react-bootstrap';
-import ContoRovescia from './ContoRovescia';
-import Scommessa from './Scommessa';
+import { useState, useEffect } from 'react';
 
 function Estrazione(props) {
-    const handleScommessaSubmit = (betNumbers) => {
-        console.log('Numeri scommessi inviati al server:', betNumbers);
-        // Qui potresti inviare i dati al server o gestirli come necessario
-      };
 
   return (
     <>
@@ -34,10 +29,28 @@ function Estrazione(props) {
           <h2>Budget attuale: {props.budget} punti</h2> {/* Qui visualizziamo il budget dell'utente */}
         </Col>
       </Row>
-
-      <Scommessa onSubmit={handleScommessaSubmit} />
     </>
   );
+}
+
+function ContoRovescia({ duration }) {
+  const [timeLeft, setTimeLeft] = useState(duration);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer); // Pulizia dell'intervallo quando il componente viene smontato
+  }, []);
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
+  return <span>{formatTime(timeLeft)}</span>;
 }
 
 export default Estrazione;
