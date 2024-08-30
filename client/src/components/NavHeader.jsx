@@ -1,19 +1,20 @@
 import { Navbar, Container, Nav } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 function NavHeader() {
     return (
       <Navbar bg='warning' data-bs-theme="light" expand="lg">
         <Container>
-          <Navbar.Brand href="#home" className="fs-1 fw-bold"> {/* fs-1 per un testo grande */}
-            Lotto Istantaneo
+          <Navbar.Brand>
+            <Link className="fs-1 fw-bold" style={{ color: 'black', textDecoration: 'none' }} to="/">Lotto Istantaneo</Link>
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
             <Nav className="ms-auto">
-              <Nav.Link href="#classifica" className="fs-4"> {/* fs-4 per un testo più grande */}
+              <Nav.Link as={Link} to="/classifica" className="fs-4">
                 Classifica
               </Nav.Link>
-              <Nav.Link href="#login" className="fs-4"> {/* fs-4 per un testo più grande */}
+              <Nav.Link as={Link} to="/login" className="fs-4">
                 Login
               </Nav.Link>
             </Nav>

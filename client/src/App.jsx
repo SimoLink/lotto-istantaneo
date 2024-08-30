@@ -5,6 +5,9 @@ import Estrazione from './components/Estrazione';
 import { Container } from 'react-bootstrap';
 import FormScommessa from './components/FormScommessa';
 import { useState } from 'react';
+import { Routes, Route, Outlet} from "react-router-dom";
+import NotFound from './components/NotFound';
+import TabellaClassifica from './components/TabellaClassifica';
 
 const fakeEstrazione = {
   id: 53,
@@ -14,6 +17,12 @@ const fakeEstrazione = {
   numero4: 23,
   numero5: 24
 }
+
+  const classifica = [
+    { username: 'topolino', punti: 150 },
+    { username: 'paperino', punti: 140 },
+    { username: 'pippo', punti: 130 }
+  ];
 
 const fakeBudget = 80;
 
@@ -25,13 +34,27 @@ function App() {
   }
 
   return (
-    <>
+    <Routes>
+      <Route element={
+      <>
       <NavHeader ></NavHeader>
-      <Container fluid className='mt-3'>
+      <Outlet/>
+      </>
+      } >
+      <Route path="/" element={
+        <Container fluid className='mt-3'>
         <Estrazione estrazione={fakeEstrazione} budget={fakeBudget}></Estrazione>
         <FormScommessa aggiungiPuntata={aggiungiPuntata}></FormScommessa>
       </Container>
-    </>
+      }/>
+      <Route path="/classifica" element={
+        <TabellaClassifica classifica={classifica}></TabellaClassifica>
+      }/>
+      <Route path="*" element={
+        <NotFound></NotFound>
+      }/>
+      </Route>
+    </Routes>
   )
 }
 
