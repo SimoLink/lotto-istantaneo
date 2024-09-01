@@ -12,18 +12,18 @@ function Estrazione(props) {
         <Table responsive striped bordered>
           <tbody>
           <tr style={{ fontSize: '2em', textAlign: 'center' }}>
-              <td>{props.estrazione.numero1}</td>
-              <td>{props.estrazione.numero2}</td>
-              <td>{props.estrazione.numero3}</td>
-              <td>{props.estrazione.numero4}</td>
-              <td>{props.estrazione.numero5}</td>
+              <td>{props.estrazioneCorrente[0]}</td>
+              <td>{props.estrazioneCorrente[1]}</td>
+              <td>{props.estrazioneCorrente[2]}</td>
+              <td>{props.estrazioneCorrente[3]}</td>
+              <td>{props.estrazioneCorrente[4]}</td>
             </tr>
           </tbody>
         </Table>
       </Row>
       <Row>
         <Col>
-        <h2>Prossima estrazione tra: <ContoRovescia duration={120} /></h2> {/* Passa 120 secondi come durata */}
+        <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} /></h2>
         </Col>
         <Col className="text-end">
           <h2>Budget attuale: {props.budget} punti</h2> {/* Qui visualizziamo il budget dell'utente */}
@@ -33,8 +33,13 @@ function Estrazione(props) {
   );
 }
 
-function ContoRovescia({ duration }) {
-  const [timeLeft, setTimeLeft] = useState(duration);
+function ContoRovescia(props) {
+  const [timeLeft, setTimeLeft] = useState(props.tempoRimanente);
+
+  useEffect(() => {
+    // Aggiorna il timeLeft quando cambia props.tempoRimanente
+    setTimeLeft(props.tempoRimanente);
+  }, [props.tempoRimanente]);
 
   useEffect(() => {
     const timer = setInterval(() => {

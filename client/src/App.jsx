@@ -4,10 +4,11 @@ import NavHeader from './components/NavHeader';
 import Estrazione from './components/Estrazione';
 import { Container } from 'react-bootstrap';
 import FormScommessa from './components/FormScommessa';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, Outlet} from "react-router-dom";
 import NotFound from './components/NotFound';
 import TabellaClassifica from './components/TabellaClassifica';
+import API from './API.mjs';
 
 const fakeEstrazione = {
   id: 53,
@@ -18,21 +19,44 @@ const fakeEstrazione = {
   numero5: 24
 }
 
-  const classifica = [
+  /*const classifica = [
     { username: 'topolino', punti: 150 },
     { username: 'paperino', punti: 140 },
     { username: 'pippo', punti: 130 }
-  ];
+  ];*/
 
 const fakeBudget = 80;
 
 function App() {
+  const [classifica, setClassifica] = useState([]);
   const [puntata, setPuntata] = useState([]);
-
+  const [estrazioneCorrente, setEstrazioneCorrente] = useState([]);
+  const [tempoRimanente, setTempoRimanente] = useState(0);
   const aggiungiPuntata = (newPuntata) => {
     setPuntata(oldPuntata => {return oldPuntata.concat(newPuntata)});
   }
+  
+  useEffect(() => {
+    //recupera i 3 migliori giocatori
+    const getClassifica = async () => {
+      const classifica = await API.getClassifica();
+      setClassifica(classifica);
+    }
+    getClassifica();
+  }, []);
 
+  useEffect(() => {
+    //recupera l'ultima estrazione
+    const getEstrazione = async () => {
+      const estrazione = await API.getEstrazione();
+      const estrazioneCorrente = estrazione.estrazione;
+      const tempoRimanente = estrazione.tempoRimanente;
+      setEstrazioneCorrente(estrazioneCorrente);
+      setTempoRimanente(tempoRimanente);
+    }
+    getEstrazione();
+  }, [estrazioneCorrente]);
+  
   return (
     <Routes>
       <Route element={
@@ -43,7 +67,7 @@ function App() {
       } >
       <Route path="/" element={
         <Container fluid className='mt-3'>
-        <Estrazione estrazione={fakeEstrazione} budget={fakeBudget}></Estrazione>
+        <Estrazione estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente} budget={fakeBudget}></Estrazione>
         <FormScommessa aggiungiPuntata={aggiungiPuntata}></FormScommessa>
       </Container>
       }/>
