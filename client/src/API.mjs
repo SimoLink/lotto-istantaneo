@@ -20,5 +20,20 @@ const getEstrazione = async () => {
         throw new Error('Internal Server Error');
     }
 
-const API = { getClassifica, getEstrazione };
+const aggiungiPuntata = async (puntata) => {
+    const response = await fetch(SERVER_URL + '/api/puntate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({idUtente: puntata.idUtente, idEstrazione: puntata.idEstrazione, puntata1: puntata.num1, puntata2: puntata.num2, puntata3: puntata.num3}),
+    });
+
+    if(!response.ok) {
+        const errMessage = await response.json();
+        throw errMessage;
+        }
+    else 
+        return null;
+    }
+
+const API = { getClassifica, getEstrazione, aggiungiPuntata };
 export default API;

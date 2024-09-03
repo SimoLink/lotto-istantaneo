@@ -1,5 +1,6 @@
 import express, { json } from 'express';
 import morgan from 'morgan';
+import cors from 'cors';
 import { classifica, getPunti, getUltimaEstrazione, inserimentoEstrazione, processoPuntata } from './dao.mjs';
 
 // init express
@@ -9,6 +10,11 @@ const port = 3001;
 //middleware
 app.use(express.json());
 app.use(morgan('dev'));
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 
 /* ROUTE */
 
@@ -44,14 +50,14 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
 
   // - POST `/api/puntate`
   app.post('/api/puntate', async (req, res) => {
-    const { idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3 } = req.body;
+    const { idUtente, idEstrazione, puntata1, puntata2, puntata3 } = req.body;
   
-    if (!idEstrazione || !totalePuntate || !puntata1) {
+    if (!idEstrazione || !puntata1) {
       return res.status(400).send("Missing required bet details.");
     }
   
     try {
-      await processoPuntata(idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3);
+      await processoPuntata(idUtente, idEstrazione, puntata1, puntata2, puntata3);
       res.status(200).json({ message: "Bet successfully placed and points updated." });
     } catch (err) {
       console.error('Error during bet process:', err);
@@ -61,6 +67,7 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
 
   let estrazioneCorrente = null;
   let tempoRimanente = 120; // Tempo iniziale di 2 minuti
+  let idUltimaEstrazione = null;
   
   // Funzione per generare una nuova estrazione
   function generaNuovaEstrazione() {
@@ -77,7 +84,7 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
   // Funzione per memorizzare l'estrazione nel database
   async function memorizzaEstrazioneNelDatabase(estrazione) {
     try {
-      const result = await inserimentoEstrazione(...estrazione);
+      idUltimaEstrazione = await inserimentoEstrazione(...estrazione);
       console.log(`Nuova estrazione generata e memorizzata: ${estrazione}`);
     } catch (err) {
       console.error('Errore durante la memorizzazione dell\'estrazione:', err);
@@ -104,6 +111,7 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
   // API per ottenere l'estrazione corrente e il tempo rimanente
   app.get('/api/estrazioneCorrente', (req, res) => {
     res.json({
+      idUltimaEstrazione,
       estrazione: estrazioneCorrente,
       tempoRimanente
     });

@@ -1,19 +1,27 @@
 import React, { useState } from 'react';
 import { Row, Col, Button, Form } from 'react-bootstrap';
+import API from '../API.mjs';
 
 function FormScommessa(props) {
-  const [num1, setNum1] = useState('');
-  const [num2, setNum2] = useState('');
-  const [num3, setNum3] = useState('');
+  console.log(props.idUltimaEstrazione)
+  const [num1, setNum1] = useState(undefined);
+  const [num2, setNum2] = useState(undefined);
+  const [num3, setNum3] = useState(undefined);
   const [error, setError] = useState('');
   
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (num1 === '' && num2 === '' && num3 === '') {
+    if (num1 === undefined && num2 === undefined && num3 === undefined) {
       setError('ATTENZIONE! Devi inserire almeno un numero.');
     } else {
-      const puntata = {num1, num2, num3};
-      props.aggiungiPuntata(puntata);
+      //const totalePuntate = "10";
+    const idUtente = "2";
+    const idEstrazione =  props.idUltimaEstrazione;
+    const puntata = {idUtente, idEstrazione, num1, num2, num3};
+    //const puntata = {idUtente, idEstrazione, totalePuntate, num1, num2, num3};
+    //props.aggiungiPuntata(puntata);
+    console.log(puntata);
+      API.aggiungiPuntata(puntata).then(() => "ciao");
     }
   };
 

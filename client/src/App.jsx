@@ -32,9 +32,11 @@ function App() {
   const [puntata, setPuntata] = useState([]);
   const [estrazioneCorrente, setEstrazioneCorrente] = useState([]);
   const [tempoRimanente, setTempoRimanente] = useState(0);
-  const aggiungiPuntata = (newPuntata) => {
+  const [idUltimaEstrazione, setIdUltimaEstrazione] = useState(0);
+
+  /*const aggiungiPuntata = (newPuntata) => {
     setPuntata(oldPuntata => {return oldPuntata.concat(newPuntata)});
-  }
+  }*/
   
   useEffect(() => {
     //recupera i 3 migliori giocatori
@@ -53,9 +55,10 @@ function App() {
       const tempoRimanente = estrazione.tempoRimanente;
       setEstrazioneCorrente(estrazioneCorrente);
       setTempoRimanente(tempoRimanente);
+      setIdUltimaEstrazione(estrazione.idUltimaEstrazione);
     }
     getEstrazione();
-  }, [estrazioneCorrente]);
+  }, []);
   
   return (
     <Routes>
@@ -68,7 +71,8 @@ function App() {
       <Route path="/" element={
         <Container fluid className='mt-3'>
         <Estrazione estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente} budget={fakeBudget}></Estrazione>
-        <FormScommessa aggiungiPuntata={aggiungiPuntata}></FormScommessa>
+        {/*<FormScommessa aggiungiPuntata={aggiungiPuntata}></FormScommessa>*/}
+        <FormScommessa idUltimaEstrazione={idUltimaEstrazione}></FormScommessa>
       </Container>
       }/>
       <Route path="/classifica" element={

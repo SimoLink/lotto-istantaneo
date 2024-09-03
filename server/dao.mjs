@@ -1,8 +1,23 @@
 import { getUserById } from './userDao.mjs';
 import { db } from './db.mjs';
+
+//calcolo punti da sottrarre per giocata
+export const calcoloSpesa = (puntata1, puntata2, puntata3) => {
+  const numeriPuntata = [puntata1, puntata2, puntata3].filter(num => num !== null);
+    
+  let punti = 0;
+  for(let i = 0; i < numeriPuntata.length; i++) {
+    if(numeriPuntata[i] !== undefined) {
+      punti += 5;
+    }
+  }
+  return punti;
+}
+
 // inserimento nuova puntata
-export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3) => {
+export const nuovaPuntata = (idUtente, idEstrazione, puntata1, puntata2, puntata3) => {
   return new Promise((resolve, reject) => {
+        const totalePuntate = calcoloSpesa(puntata1, puntata2, puntata3);
         let sql = 'INSERT INTO puntate(idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3) VALUES(?,?,?,?,?,?)';
         db.run(sql, [idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3], function (err) {
           if (err)
@@ -22,18 +37,19 @@ export const nuovaPuntata = (idUtente, idEstrazione, totalePuntate, puntata1, pu
           reject(err);
           return;
         }
-        resolve(row);
+        resolve(row.punti);
       });
     });
   };
-console.log(await getPunti(1));
+
   export const aggiornamentoPuntiDopoPuntata = (idUtente, totalePuntate) => {
     return new Promise((resolve, reject) => {
       getPunti(idUtente)
         .then(punti => {
+          console.log(punti);
+
           if (punti >= totalePuntate) {
             const query = 'UPDATE utenti SET punti = punti - ? WHERE id = ?';
-            
             db.run(query, [totalePuntate, idUtente], function(err) {
               if (err) {
                 reject(err);
@@ -55,9 +71,10 @@ console.log(await getPunti(1));
   /* Funzione che:
     1. inserisce una nuova puntata
     2. diminuisce il totale dei punti dell'utente */
-    export const processoPuntata = async (idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3) => {
+    export const processoPuntata = async (idUtente, idEstrazione, puntata1, puntata2, puntata3) => {
       try {
-      await nuovaPuntata(idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3);
+      await nuovaPuntata(idUtente, idEstrazione, puntata1, puntata2, puntata3);
+      const totalePuntate = calcoloSpesa(puntata1, puntata2, puntata3);
       await aggiornamentoPuntiDopoPuntata(idUtente, totalePuntate);
     } catch (err) {
       console.error('Errore durante il processo della puntata:', err);
@@ -178,12 +195,10 @@ console.log(await getPunti(1));
           reject(err);
           return;
         }
-        resolve({ idEstrazione: this.lastID });  // Restituisce l'id della nuova estrazione creata
+        resolve(this.lastID);  // Restituisce l'id della nuova estrazione creata
       });
     });
   };
-
-  console.log(await inserimentoEstrazione(20, 21, 22, 23, 24));
 
   export const getUltimaEstrazione = () => {
     return new Promise((resolve, reject) => {
