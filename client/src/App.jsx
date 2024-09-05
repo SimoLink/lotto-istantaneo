@@ -9,6 +9,7 @@ import { Routes, Route, Outlet} from "react-router-dom";
 import NotFound from './components/NotFound';
 import TabellaClassifica from './components/TabellaClassifica';
 import API from './API.mjs';
+import MessaggioNotifica from './components/MessaggioNotifica';
 
 const fakeEstrazione = {
   id: 53,
@@ -33,6 +34,8 @@ function App() {
   const [estrazioneCorrente, setEstrazioneCorrente] = useState([]);
   const [tempoRimanente, setTempoRimanente] = useState(0);
   const [idUltimaEstrazione, setIdUltimaEstrazione] = useState(0);
+  const [controlloPuntata, setControlloPuntata] = useState(false);
+  const [notificaVincita, setNotificaVincita] = useState(-1);
 
   /*const aggiungiPuntata = (newPuntata) => {
     setPuntata(oldPuntata => {return oldPuntata.concat(newPuntata)});
@@ -58,7 +61,47 @@ function App() {
       setIdUltimaEstrazione(estrazione.idUltimaEstrazione);
     }
     getEstrazione();
-  }, []);
+    console.log("test3")
+
+  }, [tempoRimanente]);
+
+  const test = () => {
+    setTempoRimanente(0);
+  }
+
+  useEffect(() => {
+    const controlloPuntata = async () => {
+      try {
+        const idUtente = "2";
+        const response = await API.controlloPuntata(idUtente, idUltimaEstrazione);
+        setControlloPuntata(response);
+      } catch (error) {
+        console.error("Errore durante il controllo della puntata:", error);
+      }
+    };
+    controlloPuntata();
+    console.log("test2")
+
+  }, [idUltimaEstrazione]);
+
+  useEffect(() => {
+    //recupera le notifiche
+    const notificaVincita = async () => {
+      const notifica = await API.notificaVincita(2);
+      setNotificaVincita(notifica);
+    }
+    notificaVincita();
+    console.log("test1")
+  }, [idUltimaEstrazione]);
+
+  const cancellaNotifica = (idUtente) => {
+    API.notificaLetta(idUtente);
+    setNotificaVincita(-1); // Nasconde la notifica impostando a -1
+  };
+
+  const nascondiForm = () => {
+    setControlloPuntata(true);
+  };
   
   return (
     <Routes>
@@ -70,9 +113,12 @@ function App() {
       } >
       <Route path="/" element={
         <Container fluid className='mt-3'>
-        <Estrazione estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente} budget={fakeBudget}></Estrazione>
+        <Estrazione test={test} estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente} budget={fakeBudget}></Estrazione>
         {/*<FormScommessa aggiungiPuntata={aggiungiPuntata}></FormScommessa>*/}
-        <FormScommessa idUltimaEstrazione={idUltimaEstrazione}></FormScommessa>
+        {!controlloPuntata ? <FormScommessa idUltimaEstrazione={idUltimaEstrazione} nascondiForm={nascondiForm}></FormScommessa> : "hai già giocato"}
+        {/*notificaVincita === 0 ? "hai perso" : 
+        notificaVincita > 0 ? "hai vinto" + notificaVincita + "punti" : ""*/}
+        {notificaVincita >= 0 && <MessaggioNotifica notificaVincita={notificaVincita} cancellaNotifica={cancellaNotifica}></MessaggioNotifica>}
       </Container>
       }/>
       <Route path="/classifica" element={

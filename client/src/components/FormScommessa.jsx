@@ -3,12 +3,11 @@ import { Row, Col, Button, Form } from 'react-bootstrap';
 import API from '../API.mjs';
 
 function FormScommessa(props) {
-  console.log(props.idUltimaEstrazione)
   const [num1, setNum1] = useState(undefined);
   const [num2, setNum2] = useState(undefined);
   const [num3, setNum3] = useState(undefined);
   const [error, setError] = useState('');
-  
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (num1 === undefined && num2 === undefined && num3 === undefined) {
@@ -22,6 +21,7 @@ function FormScommessa(props) {
     //props.aggiungiPuntata(puntata);
     console.log(puntata);
       API.aggiungiPuntata(puntata).then(() => "ciao");
+      props.nascondiForm();
     }
   };
 
@@ -35,7 +35,7 @@ function FormScommessa(props) {
         </Row>
         )}
 
-      <Row className="mt-4 text-center">
+      <> <Row className="mt-4 text-center">
         <Col>
           <h5>Digita fino a 3 numeri da scommettere per la prossima estrazione:</h5>
         </Col>
@@ -70,7 +70,7 @@ function FormScommessa(props) {
           </Button>
         </Col>
       </Row>
-      </Form>
+      </Form></>
     </>
   );
 }

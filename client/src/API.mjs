@@ -35,5 +35,47 @@ const aggiungiPuntata = async (puntata) => {
         return null;
     }
 
-const API = { getClassifica, getEstrazione, aggiungiPuntata };
+    const controlloPuntata = async (idUtente, idUltimaEstrazione) => {
+        const response = await fetch(SERVER_URL + '/api/controlloPuntata', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({idUtente: idUtente, idEstrazione: idUltimaEstrazione}),
+        });
+        if(response.ok) {
+            const controlloPuntataJson = await response.json();
+            return controlloPuntataJson;
+        }
+        else 
+            throw new Error('Internal Server Error');
+        }
+
+        const notificaVincita = async (idUtente) => {
+            const response = await fetch(SERVER_URL + '/api/notificaVincita', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({idUtente: idUtente}),
+            });
+            if(response.ok) {
+                const notificaVincitaJson = await response.json();
+                return notificaVincitaJson;
+            }
+            else 
+                throw new Error('Internal Server Error');
+            }
+
+            const notificaLetta = async (idUtente) => {
+                const response = await fetch(SERVER_URL + '/api/notificaLetta', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({idUtente: idUtente}),
+                });
+                if(response.ok) {
+                    const notificaLettaJson = await response.json();
+                    return notificaLettaJson;
+                }
+                else 
+                    throw new Error('Internal Server Error');
+                }
+
+const API = { getClassifica, getEstrazione, aggiungiPuntata, controlloPuntata, notificaVincita, notificaLetta };
 export default API;

@@ -28,10 +28,10 @@ import crypto from 'crypto';
   });
 };*/
 
-export const getUserById = (id) => {
+export const getUserById = (idUtente) => {
   return new Promise((resolve, reject) => {
     const sql = 'SELECT * FROM utenti WHERE id = ?';
-    db.get(sql, [id], (err, row) => {
+    db.get(sql, [idUtente], (err, row) => {
       if (err) { 
         reject(err); 
       }

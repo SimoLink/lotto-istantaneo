@@ -1,7 +1,7 @@
 import express, { json } from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import { classifica, getPunti, getUltimaEstrazione, inserimentoEstrazione, processoPuntata } from './dao.mjs';
+import { classifica, controlloPuntata, getPunti, getUltimaEstrazione, inserimentoEstrazione, notificaLetta, notificaVincita, processoPuntata } from './dao.mjs';
 
 // init express
 const app = express();
@@ -115,6 +115,33 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
       estrazione: estrazioneCorrente,
       tempoRimanente
     });
+  });
+
+  app.post('/api/controlloPuntata', async (req, res) => {
+    try {
+      const controllo = await controlloPuntata(req.body.idUtente, req.body.idEstrazione);
+      res.json(controllo);
+    } catch {
+      res.status(500).end();
+    }
+  });
+
+  app.post('/api/notificaVincita', async (req, res) => {
+    try {
+      const notifica = await notificaVincita(req.body.idUtente);
+      res.json(notifica);
+    } catch {
+      res.status(500).end();
+    }
+  });
+
+  app.put('/api/notificaLetta', async (req, res) => {
+    try {
+      const notifica = await notificaLetta(req.body.idUtente);
+      res.json(notifica);
+    } catch {
+      res.status(500).end();
+    }
   });
 
 // avvio del server

@@ -23,7 +23,7 @@ function Estrazione(props) {
       </Row>
       <Row>
         <Col>
-        <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} /></h2>
+        <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} test={props.test}/></h2>
         </Col>
         <Col className="text-end">
           <h2>Budget attuale: {props.budget} punti</h2> {/* Qui visualizziamo il budget dell'utente */}
@@ -43,7 +43,7 @@ function ContoRovescia(props) {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : props.test()));
     }, 1000);
 
     return () => clearInterval(timer); // Pulizia dell'intervallo quando il componente viene smontato
