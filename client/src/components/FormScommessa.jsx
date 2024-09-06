@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col, Button, Form } from 'react-bootstrap';
 import API from '../API.mjs';
 
@@ -7,6 +7,20 @@ function FormScommessa(props) {
   const [num2, setNum2] = useState(undefined);
   const [num3, setNum3] = useState(undefined);
   const [error, setError] = useState('');
+  const [controlloPuntata, setControlloPuntata] = useState(false);
+
+  useEffect(() => {
+    const controlloPuntata = async () => {
+      try {
+        const idUtente = "2";
+        const response = await API.controlloPuntata(idUtente, props.idUltimaEstrazione);
+        setControlloPuntata(response);
+      } catch (error) {
+        console.error("Errore durante il controllo della puntata:", error);
+      }
+    };
+    controlloPuntata();
+  }, [props.idUltimaEstrazione]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -21,8 +35,11 @@ function FormScommessa(props) {
     //props.aggiungiPuntata(puntata);
     console.log(puntata);
       API.aggiungiPuntata(puntata).then(() => "ciao");
-      props.nascondiForm();
-    }
+      const nascondiForm = () => {
+        setControlloPuntata(true);
+      };
+      nascondiForm();
+        }
   };
 
   return (
@@ -41,7 +58,7 @@ function FormScommessa(props) {
         </Col>
       </Row>
 
-        <Form onSubmit={handleSubmit}>  
+        {!controlloPuntata ? <Form onSubmit={handleSubmit}>  
       <Row className="justify-content-center mt-3">
         <Col xs={12} sm={4} md={3}>
       <Form.Group>
@@ -70,7 +87,8 @@ function FormScommessa(props) {
           </Button>
         </Col>
       </Row>
-      </Form></>
+      </Form> : "hai già giocato"}
+      </>
     </>
   );
 }

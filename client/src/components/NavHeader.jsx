@@ -6,7 +6,7 @@ function NavHeader() {
       <Navbar bg='warning' data-bs-theme="light" expand="lg">
         <Container>
           <Navbar.Brand>
-            <Link className="fs-1 fw-bold" style={{ color: 'black', textDecoration: 'none' }} to="/">Lotto Istantaneo</Link>
+            <Link className="fs-1 fw-bold" style={{ color: 'black', textDecoration: 'none' }} to="/homepage">Lotto Istantaneo</Link>
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">

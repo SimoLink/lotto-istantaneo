@@ -1,8 +1,7 @@
 import { Col, Row, Table } from 'react-bootstrap';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function Estrazione(props) {
-
   return (
     <>
       <Row>
@@ -11,7 +10,7 @@ function Estrazione(props) {
       <Row>
         <Table responsive striped bordered>
           <tbody>
-          <tr style={{ fontSize: '2em', textAlign: 'center' }}>
+            <tr style={{ fontSize: '2em', textAlign: 'center' }}>
               <td>{props.estrazioneCorrente[0]}</td>
               <td>{props.estrazioneCorrente[1]}</td>
               <td>{props.estrazioneCorrente[2]}</td>
@@ -23,10 +22,10 @@ function Estrazione(props) {
       </Row>
       <Row>
         <Col>
-        <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} test={props.test}/></h2>
+          <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} test={props.test} /></h2>
         </Col>
         <Col className="text-end">
-          <h2>Budget attuale: {props.budget} punti</h2> {/* Qui visualizziamo il budget dell'utente */}
+          <h2>Budget attuale: {props.budget} punti</h2>
         </Col>
       </Row>
     </>
@@ -35,19 +34,42 @@ function Estrazione(props) {
 
 function ContoRovescia(props) {
   const [timeLeft, setTimeLeft] = useState(props.tempoRimanente);
+  const workerRef = useRef(null);
+  const initialTimeRef = useRef(props.tempoRimanente);
 
   useEffect(() => {
-    // Aggiorna il timeLeft quando cambia props.tempoRimanente
-    setTimeLeft(props.tempoRimanente);
+    if (!workerRef.current) {
+      workerRef.current = new Worker(new URL('../countdownWorker.js', import.meta.url), { type: 'module' });
+
+      workerRef.current.onmessage = (e) => {
+        console.log('Main thread received:', e.data);
+        setTimeLeft(e.data.timeLeft);
+        if (e.data.timeLeft === 0) {
+          props.test();
+        }
+      };
+
+      // Avvia il Web Worker con il tempo iniziale
+      workerRef.current.postMessage({ timeLeft: props.tempoRimanente });
+    } else {
+      // Aggiorna solo il tempo rimanente
+      workerRef.current.postMessage({ timeLeft: props.tempoRimanente });
+    }
+
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, [props.tempoRimanente, props.test]);
+
+  useEffect(() => {
+    // Quando `tempoRimanente` cambia, invia il nuovo valore al worker
+    if (workerRef.current) {
+      workerRef.current.postMessage({ timeLeft: props.tempoRimanente });
+    }
   }, [props.tempoRimanente]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : props.test()));
-    }, 1000);
-
-    return () => clearInterval(timer); // Pulizia dell'intervallo quando il componente viene smontato
-  }, []);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
