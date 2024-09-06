@@ -22,7 +22,7 @@ function EstrazioneLayout() {
     const getEstrazione = async () => {
       const estrazione = await API.getEstrazione();
       const estrazioneCorrente = estrazione.estrazione;
-      const tempoRimanente = estrazione.tempoRimanente;
+      const tempoRimanente = estrazione.tempoRimanente + 1;
       setEstrazioneCorrente(estrazioneCorrente);
       setTempoRimanente(tempoRimanente);
       setIdUltimaEstrazione(estrazione.idUltimaEstrazione);
