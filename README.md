@@ -4,9 +4,10 @@
 
 ## React Client Application Routes
 
-- Route `/`: page content and purpose
-- Route `/something/:param`: page content and purpose, param specification
-- ...
+- Route `/`: home page del sito che mostra l'estrazione corrente e il form per una nuova scommessa.
+- Route `/classifica`: contiene una tabella che mostra i primi 3 utenti con più punti.
+- Route `/login`: pagina di login contenente le regole del gioco.
+- Route `/*`: pagina 404 not found.
 
 ## API Server
 

@@ -1,5 +1,6 @@
 import express, { json } from 'express';
 import morgan from 'morgan';
+import {body, check, validationResult} from 'express-validator';
 import cors from 'cors';
 import { classifica, controlloPuntata, getPunti, getUltimaEstrazione, inserimentoEstrazione, notificaLetta, notificaVincita, processoPuntata } from './dao.mjs';
 
@@ -29,10 +30,10 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
   });
 
   // - GET `/api/classifica`
-  app.get('/api/classifica', async (req, res) => {
+  app.get('/api/classifica', async (req, res) => {//OK
     try {
       const podio = await classifica();
-      res.json(podio);
+      res.status(200).json(podio);
     } catch {
       res.status(500).end();
     }
@@ -42,28 +43,65 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
   app.get('/api/utenti/:idUtente/punti', async (req, res) => {
     try {
       const punti = await getPunti(req.params.idUtente);
-      res.json(punti);
+      res.status(200).json(punti);
     } catch {
       res.status(500).end();
     }
   });
 
   // - POST `/api/puntate`
-  app.post('/api/puntate', async (req, res) => {
-    const { idUtente, idEstrazione, puntata1, puntata2, puntata3 } = req.body;
+  app.post('/api/puntate', [
+    check('idEstrazione').notEmpty(),
+    check('puntata1').isInt({ min: 1, max: 90 }).withMessage('Il numero deve essere compreso tra 1 e 90'),
+    check('puntata2').optional().isInt({ min: 1, max: 90 }).withMessage('Il numero deve essere compreso tra 1 e 90'),
+    check('puntata3').optional().isInt({ min: 1, max: 90 }).withMessage('Il numero deve essere compreso tra 1 e 90'),
+    body().custom((value) => {
+      const { puntata1, puntata2, puntata3 } = value;
   
-    if (!idEstrazione || !puntata1) {
-      return res.status(400).send("Missing required bet details.");
+      // Controllo se i numeri sono distinti
+      const numeri = [puntata1, puntata2, puntata3].filter(num => num !== undefined && num !== null);
+      const setNumeri = new Set(numeri);
+      if (setNumeri.size !== numeri.length) {
+        throw new Error('I numeri devono essere distinti');
+      }
+      return true;
+    })
+  ], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
     }
+  
+    const { idUtente, idEstrazione, puntata1, puntata2, puntata3 } = req.body;
   
     try {
       await processoPuntata(idUtente, idEstrazione, puntata1, puntata2, puntata3);
-      res.status(200).json({ message: "Bet successfully placed and points updated." });
+      res.status(201).json({ message: "Bet successfully placed and points updated." });
     } catch (err) {
-      console.error('Error during bet process:', err);
-      res.status(500).send("Internal Server Error");
+      res.status(500).json({ errors: [{ msg: err.message }] });
     }
   });
+  
+  /*app.post('/api/puntate', [
+    check('idEstrazione').notEmpty(),
+    check('puntata1').isNumeric(),
+    check('puntata2').isNumeric().optional(),
+    check('puntata3').isNumeric().optional()
+  ], async (req, res) => {//OK
+    const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({errors: errors.array()});
+  }
+
+    const { idUtente, idEstrazione, puntata1, puntata2, puntata3 } = req.body;
+
+  
+    try {
+      await processoPuntata(idUtente, idEstrazione, puntata1, puntata2, puntata3);
+      res.status(201).json({ message: "Bet successfully placed and points updated." });
+    } catch (err) {
+      res.status(500).json({ error: err.message });    }
+  });*/
 
   let estrazioneCorrente = null;
   let tempoRimanente = 120; // Tempo iniziale di 2 minuti
@@ -87,14 +125,14 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
       idUltimaEstrazione = await inserimentoEstrazione(...estrazione);
       console.log(`Nuova estrazione generata e memorizzata: ${estrazione}`);
     } catch (err) {
-      console.error('Errore durante la memorizzazione dell\'estrazione:', err);
+      throw new Error("Errore nell'inserimento dell'estrazione nel db: ", err);
     }
   }
   
   // Funzione eseguita ogni 2 minuti
   function eseguiCicloEstrazione() {
     estrazioneCorrente = generaNuovaEstrazione();
-    memorizzaEstrazioneNelDatabase(estrazioneCorrente);
+    memorizzaEstrazioneNelDatabase(estrazioneCorrente).catch(err => console.error('Errore nel ciclo di estrazione:', err));;
     tempoRimanente = 120; // Reset del timer
   }
   
@@ -109,24 +147,44 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
   }, 1000);
   
   // API per ottenere l'estrazione corrente e il tempo rimanente
-  app.get('/api/estrazioneCorrente', (req, res) => {
-    res.json({
-      idUltimaEstrazione,
-      estrazione: estrazioneCorrente,
-      tempoRimanente
-    });
+  app.get('/api/estrazioneCorrente', async (req, res) => {//OK
+    try {
+      // Verifica che i dati esistano prima di restituirli
+      if (!idUltimaEstrazione || !estrazioneCorrente) {
+        res.status(500).json({ error: 'Nessuna estrazione disponibile al momento.' });
+        return;
+      }
+  
+      // Restituisce i dati con codice 200 OK
+      res.status(200).json({
+        idUltimaEstrazione,
+        estrazione: estrazioneCorrente,
+        tempoRimanente
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Errore interno del server.' });
+    }
   });
 
-  app.post('/api/controlloPuntata', async (req, res) => {
+  app.get('/api/controlloPuntata/:idEstrazione/:idUtente', async (req, res) => {
     try {
-      const controllo = await controlloPuntata(req.body.idUtente, req.body.idEstrazione);
+      const controllo = await controlloPuntata(req.params.idUtente, req.params.idEstrazione);
       res.json(controllo);
     } catch {
       res.status(500).end();
     }
   });
 
-  app.post('/api/notificaVincita', async (req, res) => {
+  /*app.post('/api/controlloPuntata', async (req, res) => {
+    try {
+      const controllo = await controlloPuntata(req.body.idUtente, req.body.idEstrazione);
+      res.json(controllo);
+    } catch {
+      res.status(500).end();
+    }
+  });*/
+
+  app.post('/api/notificaVincita', async (req, res) => { //MODIFICA DOPO LOGIN
     try {
       const notifica = await notificaVincita(req.body.idUtente);
       res.json(notifica);
@@ -135,12 +193,12 @@ app.get('/api/estrazioni/ultima', async (req, res) => {
     }
   });
 
-  app.put('/api/notificaLetta', async (req, res) => {
+  app.put('/api/notificaLetta', async (req, res) => { //OK
     try {
       const notifica = await notificaLetta(req.body.idUtente);
-      res.json(notifica);
+      res.status(200).end();
     } catch {
-      res.status(500).end();
+      res.status(503).end();
     }
   });
 

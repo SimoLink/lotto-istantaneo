@@ -21,12 +21,7 @@ function Estrazione(props) {
         </Table>
       </Row>
       <Row>
-        <Col>
           <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} test={props.test} /></h2>
-        </Col>
-        <Col className="text-end">
-          <h2>Budget attuale: {props.budget} punti</h2>
-        </Col>
       </Row>
     </>
   );
@@ -42,11 +37,26 @@ function ContoRovescia(props) {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : props.test()));
+      setTimeLeft((prevTime) => {
+        if (prevTime > 0) {
+          return prevTime - 1;
+        } else {
+          clearInterval(timer); // Ferma il timer quando il tempo finisce
+          handleTimeUp(); // Chiama la funzione quando il tempo è scaduto
+          return 0;
+        }
+      });
     }, 1000);
 
     return () => clearInterval(timer); // Pulizia dell'intervallo quando il componente viene smontato
-  }, []);
+  }, [timeLeft]);
+
+  const handleTimeUp = () => {
+    // Esegui props.test() qui, dopo che il rendering è completato
+    setTimeout(() => {
+      props.test(); // Questo resetterà tempoRimanente dal componente genitore
+    }, 0);
+  };
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -56,5 +66,6 @@ function ContoRovescia(props) {
 
   return <span>{formatTime(timeLeft)}</span>;
 }
+
 
 export default Estrazione;

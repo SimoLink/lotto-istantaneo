@@ -9,13 +9,13 @@ import MessaggioNotifica from './MessaggioNotifica';
 import API from '../API.mjs';
 
 
-const fakeBudget = 80;
+const idUtente = (Math.floor(Math.random() * 5) + 1).toString();
+  console.log(idUtente);
 
 function EstrazioneLayout() {
   const [estrazioneCorrente, setEstrazioneCorrente] = useState([]);
   const [tempoRimanente, setTempoRimanente] = useState(0);
   const [idUltimaEstrazione, setIdUltimaEstrazione] = useState(0);
-
 
   useEffect(() => {
     // Recupera l'ultima estrazione
@@ -30,6 +30,7 @@ function EstrazioneLayout() {
     getEstrazione();
   }, [tempoRimanente]);
 
+
   const test = () => {
     setTempoRimanente(0);
   };
@@ -42,11 +43,11 @@ function EstrazioneLayout() {
   
   return (
     <Container fluid className='mt-3'>
-      <Estrazione test={test} estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente} budget={fakeBudget} />
+      <Estrazione test={test} estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente}/>
       {/*!controlloPuntata ? <FormScommessa idUltimaEstrazione={idUltimaEstrazione} nascondiForm={nascondiForm} /> : "hai già giocato"*/}
       {/*notificaVincita >= 0 && <MessaggioNotifica notificaVincita={notificaVincita} cancellaNotifica={cancellaNotifica} />*/}
-      <FormScommessa idUltimaEstrazione={idUltimaEstrazione}/> 
-<MessaggioNotifica idUltimaEstrazione={idUltimaEstrazione} />
+      <FormScommessa idUtente={idUtente} idUltimaEstrazione={idUltimaEstrazione}/> 
+<MessaggioNotifica idUtente={idUtente} idUltimaEstrazione={idUltimaEstrazione} />
     </Container>
   );
 }
