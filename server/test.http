@@ -2,10 +2,29 @@ POST http://localhost:3001/api/puntate
 content-type: application/json
 
 {
-  "idUtente": 2,
+  "idUtente": 1,
   "idEstrazione": 2, 
-  "totalePuntate": 15,
-  "puntata1": 88,
-  "puntata2": 10,
-  "puntata3": 3
+  "puntata1": 1,
+  "puntata2": null,
+  "puntata3": null
 }
+###
+
+# Login
+
+POST http://localhost:3001/api/sessions
+content-type: application/json
+
+{
+  "username": "Alessio",
+  "password": "pass1"
+}
+###
+
+## Checking if user is still logged-in.
+GET http://localhost:3001/api/sessions/current
+###
+
+## Execute Log Out.
+DELETE http://localhost:3001/api/sessions/current
+###

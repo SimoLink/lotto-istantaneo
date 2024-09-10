@@ -1,117 +1,81 @@
 import { getUserById } from './userDao.mjs';
 import { db } from './db.mjs';
 
-//calcolo punti da sottrarre per giocata
-export const calcoloSpesa = (puntata1, puntata2, puntata3) => {
-  const numeriPuntata = [puntata1, puntata2, puntata3].filter(num => num !== null);
-    
-  let punti = 0;
-  for(let i = 0; i < numeriPuntata.length; i++) {
-    if(numeriPuntata[i] !== undefined) {
-      punti += 5;
-    }
-  }
-  return punti;
-}
-
-/*
-export const calcoloSpesa = (puntata1, puntata2, puntata3) => {
-  // Crea un array con i valori delle puntate, escludendo i valori null
-  const numeriPuntata = [puntata1, puntata2, puntata3].filter(num => num != null);
-
-  // Calcola il totale dei punti basato sul numero di puntate valide
-  const punti = numeriPuntata.length * 5;
-
-  return punti;
-};
-Uso di != null: Ho cambiato il filtro per escludere null e undefined usando num != null. Questo è utile se desideri escludere entrambi i valori null e undefined. Puoi usare num !== null se desideri escludere solo null.
-
-Semplificazione del Calcolo dei Punti: Il ciclo for è stato rimosso e sostituito con una semplice moltiplicazione. Poiché ogni valore valido contribuisce con 5 punti, basta moltiplicare la lunghezza dell'array filtrato per 5.
-
-Eliminazione del Controllo Superfluo: Il controllo if(numeriPuntata[i] !== undefined) è superfluo perché gli elementi dell'array sono già garantiti essere diversi da null a questo punto.
-*/
-
-// inserimento nuova puntata
-export const nuovaPuntata = (idUtente, idEstrazione, puntata1, puntata2, puntata3, totalePuntate) => {
+export const classifica = () => {
   return new Promise((resolve, reject) => {
+    const query = 'SELECT username, punti FROM utenti ORDER BY punti DESC LIMIT 3';
 
-        let sql = 'INSERT INTO puntate(idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3) VALUES(?,?,?,?,?,?)';
-        db.run(sql, [idUtente, idEstrazione+1, totalePuntate, puntata1, puntata2, puntata3], function (err) {
-          if (err)
-            reject(err);
-          else
-            resolve(this.lastID);
-        });
-      
-    });
-  }
-
-  export const getPunti = (idUtente) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT punti FROM utenti WHERE id = ?';
-  
-      db.get(sql, [idUtente], (err, row) => {
-        if (err) {
-          reject(err);
-        } else if (row === undefined) {
-          resolve({ error: "Utente non trovato." });
-        } else {
-          resolve(row.punti);
-        }
-      });
-    });
-  };
-
-  export const verificaSaldo = async (idUtente, totalePuntate) => {
-    try {
-    const saldoUtente = await getPunti(idUtente);
-    
-    if(saldoUtente >= totalePuntate) {
-      return true;
-    } else {
-      return false;
-    } 
-  } catch (error) {
-      throw new Error("Impossibile verificare il saldo dell'utente.");
-    }
-  }
-
-  export const aggiornamentoPuntiDopoPuntata = (idUtente, totalePuntate) => {
-    return new Promise((resolve, reject) => {
-
-            const query = 'UPDATE utenti SET punti = punti - ? WHERE id = ?';
-            db.run(query, [totalePuntate, idUtente], function(err) {
-              if (err) {
-                reject(err);
-              }
-              resolve({ success: true, changes: this.changes });
-            });
-            
-          
-    });
-  };
-
-  /* Funzione che:
-    1. inserisce una nuova puntata
-    2. diminuisce il totale dei punti dell'utente */
-    export const processoPuntata = async (idUtente, idEstrazione, puntata1, puntata2, puntata3) => {
-      try {
-      const totalePuntate = calcoloSpesa(puntata1, puntata2, puntata3);
-      if(!await verificaSaldo(idUtente, totalePuntate)) {
-        throw new Error('Saldo insufficiente');
+    db.all(query, [], (err, rows) => {
+      if (err) {
+        reject(err); 
+      } else if (rows.length === 0) {
+        resolve({ error: "Nessun utente nel database." });
       } else {
-        await nuovaPuntata(idUtente, idEstrazione, puntata1, puntata2, puntata3, totalePuntate);
-      await aggiornamentoPuntiDopoPuntata(idUtente, totalePuntate);
+        resolve(rows.map(row => ({ username: row.username, punti: row.punti })));
+      }
+    });
+  });
+};
+
+export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero5) => {
+  return new Promise((resolve, reject) => {
+    const query = 'INSERT INTO estrazioni (numero1, numero2, numero3, numero4, numero5) VALUES (?, ?, ?, ?, ?)';
+
+    db.run(query, [numero1, numero2, numero3, numero4, numero5], function(err) {
+//db.run(query, [1, 2, 3, 4, 5], function(err) {
+      if (err) {
+        reject(err); 
+        return;
       }
       
-    } catch (err) {
-      throw err;
-    }
-    }
+      resolve(this.lastID);
 
+      processoScommessa(this.lastID)
+        .catch(err => {
+          console.error('Errore durante il processo di scommessa:', err);
+        });
+    });
+  });
+};
 
-
-
+    /* Funzione che avvia l'intero processo di una scommessa:
+    1. dato un utente ed una estrazione, restituisce la puntata e l'estrazione
+    2. data la puntata e l'estrazione, calcola il valore della vincita
+    3. recupera i punti dell'utente e aggiorna i punti */
+    export const processoScommessa = async (idEstrazione) => {
+      try {
+        const puntataEstrazione = await getPuntataEstrazione(idEstrazione);
+    
+        if (puntataEstrazione.error) {
+          console.error(puntataEstrazione.error); //lascia in console l'errore
+          return; // Esci dalla funzione se c'è un errore
+        }
+    
+        // Usa Promise.all per gestire le promesse in parallelo
+        await Promise.all(puntataEstrazione.map(async (row) => {
+          try {
+            const puntiVinti = calcoloVincita(row); // Aggiungi await per calcoloVincita
+            const user = await getUserById(row.idUtente);
+            console.log("L'utente corrente è", user);
+    
+            const puntiAttuali = user.punti;
+            console.log("I punti attuali sono", puntiAttuali);
+            console.log("I punti vinti sono", puntiVinti);
+    
+            // Calcola il nuovo saldo dei punti
+            const puntiAggiornati = puntiAttuali + puntiVinti;
+            console.log("I punti aggiornati sono", puntiAggiornati);
+    
+            await aggiornaPunti(user.id, puntiAggiornati);
+          } catch (err) {
+            // Gestisci gli errori individuali per ogni riga
+            console.error('Errore durante il calcolo della vincita o l\'aggiornamento dei punti:', err);
+          }
+        }));
+      } catch (err) {
+        console.error('Errore durante il processo della scommessa:', err);
+      }
+    };
 
     export const getPuntataEstrazione = (idEstrazione) => {
       return new Promise((resolve, reject) => {
@@ -128,7 +92,6 @@ export const nuovaPuntata = (idUtente, idEstrazione, puntata1, puntata2, puntata
         });
       });
     };
-    
 
     //calcolo vincita
     export const calcoloVincita = (puntataEstrazione) => {
@@ -181,8 +144,9 @@ export const nuovaPuntata = (idUtente, idEstrazione, puntata1, puntata2, puntata
         });
       }
 
-    //Aggiorna i punti di uno specifico utente sovrascrivendo i punti precedenti
-  export const aggiornaPunti = (idUtente, puntiAggiornati) => {
+
+   //Aggiorna i punti di uno specifico utente sovrascrivendo i punti precedenti
+   export const aggiornaPunti = (idUtente, puntiAggiornati) => {
     return new Promise((resolve, reject) => {
       const query = 'UPDATE utenti SET punti = ? WHERE id = ?';
       
@@ -197,45 +161,200 @@ export const nuovaPuntata = (idUtente, idEstrazione, puntata1, puntata2, puntata
         });
       });
     }
+    /*Fine processo scommessa*/
 
-    /* Funzione che avvia l'intero processo di una scommessa:
-    1. dato un utente ed una estrazione, restituisce la puntata e l'estrazione
-    2. data la puntata e l'estrazione, calcola il valore della vincita
-    3. recupera i punti dell'utente e aggiorna i punti */
-    export const processoScommessa = async (idEstrazione) => {
-      try {
-        const puntataEstrazione = await getPuntataEstrazione(idEstrazione);
-    
-        if (puntataEstrazione.error) {
-          console.error(puntataEstrazione.error); //lascia in console l'errore
-          return; // Esci dalla funzione se c'è un errore
-        }
-    
-        // Usa Promise.all per gestire le promesse in parallelo
-        await Promise.all(puntataEstrazione.map(async (row) => {
-          try {
-            const puntiVinti = calcoloVincita(row); // Aggiungi await per calcoloVincita
-            const user = await getUserById(row.idUtente);
-            console.log("L'utente corrente è", user);
-    
-            const puntiAttuali = user.punti;
-            console.log("I punti attuali sono", puntiAttuali);
-            console.log("I punti vinti sono", puntiVinti);
-    
-            // Calcola il nuovo saldo dei punti
-            const puntiAggiornati = puntiAttuali + puntiVinti;
-            console.log("I punti aggiornati sono", puntiAggiornati);
-    
-            await aggiornaPunti(user.id, puntiAggiornati);
-          } catch (err) {
-            // Gestisci gli errori individuali per ogni riga
-            console.error('Errore durante il calcolo della vincita o l\'aggiornamento dei punti:', err);
+    export const getUltimaEstrazione = () => {
+      return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM estrazioni ORDER BY id DESC LIMIT 1';
+        
+        db.get(query, [], (err, row) => {
+          if (err) {
+            reject(err);
+            return;
           }
-        }));
-      } catch (err) {
-        console.error('Errore durante il processo della scommessa:', err);
-      }
+          else if (row) {
+            resolve(row);  // Restituisce l'ultima estrazione trovata
+          } else {
+            resolve(null); // Restituisce null se non ci sono risultati
+          }
+        });
+      });
     };
+
+ /* Funzione che:
+    1. inserisce una nuova puntata
+    2. diminuisce il totale dei punti dell'utente */
+    export const processoPuntata = async (idUtente, idEstrazione, puntata1, puntata2, puntata3) => {
+      try {
+      const totalePuntate = calcoloSpesa(puntata1, puntata2, puntata3);
+      if(!await verificaSaldo(idUtente, totalePuntate)) {
+        throw new Error('Saldo insufficiente');
+      } else {
+        await nuovaPuntata(idUtente, idEstrazione, puntata1, puntata2, puntata3, totalePuntate);
+      await aggiornamentoPuntiDopoPuntata(idUtente, totalePuntate);
+      }
+      
+    } catch (err) {
+      throw err;
+    }
+    }
+
+//calcolo punti da sottrarre per giocata
+export const calcoloSpesa = (puntata1, puntata2, puntata3) => {
+  const numeriPuntata = [puntata1, puntata2, puntata3].filter(num => num !== null);
+    
+  let punti = 0;
+  for(let i = 0; i < numeriPuntata.length; i++) {
+    if(numeriPuntata[i] !== undefined) {
+      punti += 5;
+    }
+  }
+  return punti;
+}
+
+/*
+export const calcoloSpesa = (puntata1, puntata2, puntata3) => {
+  // Crea un array con i valori delle puntate, escludendo i valori null
+  const numeriPuntata = [puntata1, puntata2, puntata3].filter(num => num != null);
+
+  // Calcola il totale dei punti basato sul numero di puntate valide
+  const punti = numeriPuntata.length * 5;
+
+  return punti;
+};
+Uso di != null: Ho cambiato il filtro per escludere null e undefined usando num != null. Questo è utile se desideri escludere entrambi i valori null e undefined. Puoi usare num !== null se desideri escludere solo null.
+
+Semplificazione del Calcolo dei Punti: Il ciclo for è stato rimosso e sostituito con una semplice moltiplicazione. Poiché ogni valore valido contribuisce con 5 punti, basta moltiplicare la lunghezza dell'array filtrato per 5.
+
+Eliminazione del Controllo Superfluo: Il controllo if(numeriPuntata[i] !== undefined) è superfluo perché gli elementi dell'array sono già garantiti essere diversi da null a questo punto.
+*/
+
+export const verificaSaldo = async (idUtente, totalePuntate) => {
+  try {
+  const saldoUtente = await getPunti(idUtente);
+  
+  if(saldoUtente >= totalePuntate) {
+    return true;
+  } else {
+    return false;
+  } 
+} catch (error) {
+    throw new Error("Impossibile verificare il saldo dell'utente.");
+  }
+}
+
+export const getPunti = (idUtente) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT punti FROM utenti WHERE id = ?';
+
+    db.get(sql, [idUtente], (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        resolve({ error: "Utente non trovato." });
+      } else {
+        resolve(row.punti);
+      }
+    });
+  });
+};
+
+
+// inserimento nuova puntata
+export const nuovaPuntata = (idUtente, idEstrazione, puntata1, puntata2, puntata3, totalePuntate) => {
+  return new Promise((resolve, reject) => {
+
+        let sql = 'INSERT INTO puntate(idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3) VALUES(?,?,?,?,?,?)';
+        db.run(sql, [idUtente, idEstrazione+1, totalePuntate, puntata1, puntata2, puntata3], function (err) {
+          if (err)
+            reject(err);
+          else
+            resolve(this.lastID);
+        });
+      
+    });
+  }
+
+  export const aggiornamentoPuntiDopoPuntata = (idUtente, totalePuntate) => {
+    return new Promise((resolve, reject) => {
+
+            const query = 'UPDATE utenti SET punti = punti - ? WHERE id = ?';
+            db.run(query, [totalePuntate, idUtente], function(err) {
+              if (err) {
+                reject(err);
+              }
+              resolve({ success: true, changes: this.changes });
+            });
+            
+          
+    });
+  };
+
+  export const controlloPuntata = (idUtente, idEstrazione) => {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT * FROM puntate WHERE idUtente = ? AND idEstrazione = ?';
+      
+      db.get(query, [idUtente, parseInt(idEstrazione) + 1], (err, row) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        else if(row){
+          resolve(true);
+        }
+        else {
+          resolve(false);
+        }
+      });
+    });
+  };
+
+  export const notificaVincita = (idUtente) => {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT puntiVinti FROM puntate WHERE idUtente = ? AND notifica = 0 AND puntiVinti IS NOT NULL ORDER BY idEstrazione DESC LIMIT 1';
+      
+      db.get(query, [idUtente], (err, row) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        else if(row){
+          resolve(row.puntiVinti);
+        }
+        else {
+          resolve(-1);
+        }
+      });
+    });
+  };
+
+  export const notificaLetta = (idUtente) => {
+    return new Promise((resolve, reject) => {
+      const query = 'UPDATE puntate SET notifica = 1 WHERE idUtente = ?';
+      
+      db.run(query, [idUtente], function(err) {
+        if (err) {
+            reject(err); 
+          } else {
+            resolve(this.changes); // Restituisce il numero di righe aggiornate
+          }
+        });
+      });
+    }
+
+
+
+
+
+
+    
+
+
+
+
+
+ 
+
     
 
     /*LAVORI IN CORSO WORK IN PROGRESS
@@ -331,112 +450,8 @@ export const nuovaPuntata = (idUtente, idEstrazione, puntata1, puntata2, puntata
   }
   }*/
 
-  export const classifica = () => {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT username, punti FROM utenti ORDER BY punti DESC LIMIT 3';
-  
-      db.all(query, [], (err, rows) => {
-        if (err) {
-          reject(err); 
-        } else if (rows.length === 0) {
-          resolve({ error: "Nessun utente nel database." });
-        } else {
-          resolve(rows.map(row => ({ username: row.username, punti: row.punti })));
-        }
-      });
-    });
-  };
- 
-      export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero5) => {
-        return new Promise((resolve, reject) => {
-          const query = 'INSERT INTO estrazioni (numero1, numero2, numero3, numero4, numero5) VALUES (?, ?, ?, ?, ?)';
-      
-          //db.run(query, [numero1, numero2, numero3, numero4, numero5], function(err) {
-    db.run(query, [1, 2, 3, 4, 5], function(err) {
-            if (err) {
-              reject(err); 
-              return;
-            }
-            
-            resolve(this.lastID);
-      
-            processoScommessa(this.lastID)
-              .catch(err => {
-                console.error('Errore durante il processo di scommessa:', err);
-              });
-          });
-        });
-      };
 
-  export const getUltimaEstrazione = () => {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM estrazioni ORDER BY id DESC LIMIT 1';
-      
-      db.get(query, [], (err, row) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        else if (row) {
-          resolve(row);  // Restituisce l'ultima estrazione trovata
-        } else {
-          resolve(null); // Restituisce null se non ci sono risultati
-        }
-      });
-    });
-  };
 
-  export const controlloPuntata = (idUtente, idEstrazione) => {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM puntate WHERE idUtente = ? AND idEstrazione = ?';
-      
-      db.get(query, [idUtente, parseInt(idEstrazione) + 1], (err, row) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        else if(row){
-          resolve(true);
-        }
-        else {
-          resolve(false);
-        }
-      });
-    });
-  };
-
-  export const notificaVincita = (idUtente) => {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT puntiVinti FROM puntate WHERE idUtente = ? AND notifica = 0 AND puntiVinti IS NOT NULL ORDER BY idEstrazione DESC LIMIT 1';
-      
-      db.get(query, [idUtente], (err, row) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        else if(row){
-          resolve(row.puntiVinti);
-        }
-        else {
-          resolve(-1);
-        }
-      });
-    });
-  };
-
-  export const notificaLetta = (idUtente) => {
-    return new Promise((resolve, reject) => {
-      const query = 'UPDATE puntate SET notifica = 1 WHERE idUtente = ?';
-      
-      db.run(query, [idUtente], function(err) {
-        if (err) {
-            reject(err); 
-          } else {
-            resolve(this.changes); // Restituisce il numero di righe aggiornate
-          }
-        });
-      });
-    }
 
 //FUNZIONI DI TEST, ELIMINA
 /*

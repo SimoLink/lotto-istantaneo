@@ -1,7 +1,7 @@
 function NotFound() {
 
   return (
-    <p className='lead text-center'>Pagina non trovata</p>
+    <p className='lead text-center' style={{ fontSize: '4em'}}>Pagina non trovata</p>
   );
 }
 

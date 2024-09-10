@@ -9,10 +9,10 @@ import MessaggioNotifica from './MessaggioNotifica';
 import API from '../API.mjs';
 
 
-const idUtente = (Math.floor(Math.random() * 5) + 1).toString();
-  console.log(idUtente);
+/*const idUtente = (Math.floor(Math.random() * 5) + 1).toString();
+  console.log(idUtente);*/
 
-function EstrazioneLayout() {
+function EstrazioneLayout(props) {
   const [estrazioneCorrente, setEstrazioneCorrente] = useState([]);
   const [tempoRimanente, setTempoRimanente] = useState(0);
   const [idUltimaEstrazione, setIdUltimaEstrazione] = useState(0);
@@ -46,8 +46,8 @@ function EstrazioneLayout() {
       <Estrazione test={test} estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente}/>
       {/*!controlloPuntata ? <FormScommessa idUltimaEstrazione={idUltimaEstrazione} nascondiForm={nascondiForm} /> : "hai già giocato"*/}
       {/*notificaVincita >= 0 && <MessaggioNotifica notificaVincita={notificaVincita} cancellaNotifica={cancellaNotifica} />*/}
-      <FormScommessa idUtente={idUtente} idUltimaEstrazione={idUltimaEstrazione}/> 
-<MessaggioNotifica idUtente={idUtente} idUltimaEstrazione={idUltimaEstrazione} />
+      <FormScommessa idUtente={props.user.id} idUltimaEstrazione={idUltimaEstrazione}/> 
+<MessaggioNotifica idUtente={props.user.id} idUltimaEstrazione={idUltimaEstrazione} />
     </Container>
   );
 }

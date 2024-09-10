@@ -3,10 +3,10 @@
 import { db } from './db.mjs';
 import crypto from 'crypto';
 
-/*export const getUser = (email, password) => {
+export const getUser = (username, password) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM user WHERE email = ?';
-    db.get(sql, [email], (err, row) => {
+    const sql = 'SELECT * FROM utenti WHERE username = ?';
+    db.get(sql, [username], (err, row) => {
       if (err) { 
         reject(err); 
       }
@@ -14,7 +14,7 @@ import crypto from 'crypto';
         resolve(false); 
       }
       else {
-        const user = {id: row.id, username: row.email, name: row.name};
+        const user = {id: row.id, username: row.username, punti: row.punti};
         
         crypto.scrypt(password, row.salt, 32, function(err, hashedPassword) {
           if (err) reject(err);
@@ -26,7 +26,7 @@ import crypto from 'crypto';
       }
     });
   });
-};*/
+};
 
 export const getUserById = (idUtente) => {
   return new Promise((resolve, reject) => {
