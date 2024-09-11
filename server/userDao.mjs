@@ -1,5 +1,3 @@
-//INSERIRE PER LOGIN. RIVEDI TUTTO POICHé HO COPIATO DAL LAB 13
-/**  NEW **/
 import { db } from './db.mjs';
 import crypto from 'crypto';
 
@@ -30,7 +28,7 @@ export const getUser = (username, password) => {
 
 export const getUserById = (idUtente) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM utenti WHERE id = ?';
+    const sql = 'SELECT id, punti FROM utenti WHERE id = ?';
     db.get(sql, [idUtente], (err, row) => {
       if (err) { 
         reject(err); 
@@ -39,13 +37,9 @@ export const getUserById = (idUtente) => {
         resolve({error: 'User not found!'}); 
       }
       else {
-        const user = {id: row.id, username: row.username, punti: row.punti};
+        const user = {id: row.id, punti: row.punti};
         resolve(user);
       }
     });
   });
 };
-
-//INSERIRE query per aggiornare il numero di punti disponibili per un utente (dopo una vittoria o una puntata).
-
-//INSERIRE query per ottenere i dettagli dei primi 3 giocatori con il maggior numero di punti, ordinati in ordine decrescente.

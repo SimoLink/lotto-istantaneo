@@ -16,6 +16,8 @@ function EstrazioneLayout(props) {
   const [estrazioneCorrente, setEstrazioneCorrente] = useState([]);
   const [tempoRimanente, setTempoRimanente] = useState(0);
   const [idUltimaEstrazione, setIdUltimaEstrazione] = useState(0);
+  const [prova, setProva] = useState(false);
+  const [waiting, setWaiting] = useState(false);
 
   useEffect(() => {
     // Recupera l'ultima estrazione
@@ -26,29 +28,27 @@ function EstrazioneLayout(props) {
       setEstrazioneCorrente(estrazioneCorrente);
       setTempoRimanente(tempoRimanente);
       setIdUltimaEstrazione(estrazione.idUltimaEstrazione);
+      setWaiting(true);
     };
     getEstrazione();
-  }, [tempoRimanente]);
+  }, [prova]);
 
 
   const test = () => {
     setTempoRimanente(0);
+    setProva(!prova);
   };
 
-  
-
-  
-
-  
-  
   return (
-    <Container fluid className='mt-3'>
-      <Estrazione test={test} estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente}/>
-      {/*!controlloPuntata ? <FormScommessa idUltimaEstrazione={idUltimaEstrazione} nascondiForm={nascondiForm} /> : "hai già giocato"*/}
+    waiting ? (<Container fluid className='mt-3'>
+<Estrazione test={test} estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente}/>
+   {/*!controlloPuntata ? <FormScommessa idUltimaEstrazione={idUltimaEstrazione} nascondiForm={nascondiForm} /> : "hai già giocato"*/}
       {/*notificaVincita >= 0 && <MessaggioNotifica notificaVincita={notificaVincita} cancellaNotifica={cancellaNotifica} />*/}
-      <FormScommessa idUtente={props.user.id} idUltimaEstrazione={idUltimaEstrazione}/> 
+ <FormScommessa idUtente={props.user.id} idUltimaEstrazione={idUltimaEstrazione}/> 
 <MessaggioNotifica idUtente={props.user.id} idUltimaEstrazione={idUltimaEstrazione} />
-    </Container>
+    </Container>) : (<Container>
+      <p className='lead text-center' style={{ fontSize: '4em'}}>Pagina in caricamento, attendere...</p>
+    </Container>)
   );
 }
 

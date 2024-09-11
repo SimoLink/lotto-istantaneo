@@ -2,20 +2,20 @@ import express, { json } from 'express';
 import morgan from 'morgan';
 import {body, check, validationResult} from 'express-validator';
 import cors from 'cors';
-import { classifica, controlloPuntata, getPunti, getUltimaEstrazione, inserimentoEstrazione, notificaLetta, notificaVincita, processoPuntata } from './dao.mjs';
+import { classifica, controlloPuntata, getUltimaEstrazione, inserimentoEstrazione, notificaLetta, notificaVincita, processoPuntata } from './dao.mjs';
 
 //Passport
 import passport from 'passport';
 import LocalStrategy from 'passport-local'; //strategia username e password
 import session from 'express-session';
-import { getUser } from './userDao.mjs';
+import { getUser, getUserById } from './userDao.mjs';
 
 // init express
 const app = express();
 const port = 3001;
 
 //middleware
-app.use(express.json());
+app.use(express.json()); //converte i json in javascript
 app.use(morgan('dev'));
 const corsOptions = {
   origin: 'http://localhost:5173',
@@ -56,18 +56,7 @@ app.use(session({
 }));
 app.use(passport.authenticate('session'));
 
-/* ROUTE */
-
-// - GET `/api/classifica`
-app.get('/api/classifica', isLoggedIn, async (req, res) => {//OK
-  try {
-    const podio = await classifica();
-    res.status(200).json(podio);
-  } catch {
-    res.status(500).end();
-  }
-});
-
+/* Generazione estrazione e timer di 2 minuti */
 let estrazioneCorrente = null;
 let tempoRimanente = 120; // Tempo iniziale di 2 minuti
 let idUltimaEstrazione = null;
@@ -111,7 +100,19 @@ setInterval(() => {
   }
 }, 1000);
 
-// API per ottenere l'estrazione corrente e il tempo rimanente
+/* ROUTE */
+
+// - GET `/api/classifica`
+app.get('/api/classifica', isLoggedIn, async (req, res) => {
+  try {
+    const podio = await classifica();
+    res.status(200).json(podio);
+  } catch {
+    res.status(500).end();
+  }
+});
+
+// - GET `/api/estrazioneCorrente`
 app.get('/api/estrazioneCorrente', isLoggedIn, async (req, res) => {
   try {
     const ultimaEstrazione = await getUltimaEstrazione();
@@ -131,10 +132,8 @@ app.get('/api/estrazioneCorrente', isLoggedIn, async (req, res) => {
   }
 });
 
-
 // - POST `/api/puntate`
 app.post('/api/puntate', isLoggedIn, [
-  check('idEstrazione').notEmpty(),
   check('puntata1').isInt({ min: 1, max: 90 }).withMessage('Il numero deve essere compreso tra 1 e 90'),
   check('puntata2').optional().isInt({ min: 1, max: 90 }).withMessage('Il numero deve essere compreso tra 1 e 90'),
   check('puntata3').optional().isInt({ min: 1, max: 90 }).withMessage('Il numero deve essere compreso tra 1 e 90'),
@@ -155,40 +154,26 @@ app.post('/api/puntate', isLoggedIn, [
     return res.status(422).json({ errors: errors.array() });
   }
 
-  const { idUtente, idEstrazione, puntata1, puntata2, puntata3 } = req.body;
+  const { idUtente, puntata1, puntata2, puntata3 } = req.body;
 
   try {
-    await processoPuntata(idUtente, idEstrazione, puntata1, puntata2, puntata3);
+    await processoPuntata(idUtente, puntata1, puntata2, puntata3);
     res.status(201).json({ message: "Bet successfully placed and points updated." });
   } catch (err) {
-    res.status(500).json({ errors: [{ msg: err.message }] });
+    res.status(500).json({ errors: [{ msg: err.message }] }); //express-validator usa un array di errori, pertanto seguo la stessa sintassi
   }
 });
 
-/*app.post('/api/puntate', [
-  check('idEstrazione').notEmpty(),
-  check('puntata1').isNumeric(),
-  check('puntata2').isNumeric().optional(),
-  check('puntata3').isNumeric().optional()
-], async (req, res) => {//OK
-  const errors = validationResult(req);
-if (!errors.isEmpty()) {
-  return res.status(422).json({errors: errors.array()});
-}
+// - GET `/api/controlloPuntata/:idEstrazione/:idUtente`
+app.get('/api/controlloPuntata/:idEstrazione/:idUtente', isLoggedIn, 
+  [check('idEstrazione').isInt({ min: 0 }),
+    check('idUtente').isInt({ min: 0 })],
+    async (req, res) => {
+      const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
 
-const { idUtente, idEstrazione, puntata1, puntata2, puntata3 } = req.body;
-
-
-  try {
-    await processoPuntata(idUtente, idEstrazione, puntata1, puntata2, puntata3);
-    res.status(201).json({ message: "Bet successfully placed and points updated." });
-  } catch (err) {
-    res.status(500).json({ error: err.message });    }
-});*/
-
-
-
-app.get('/api/controlloPuntata/:idEstrazione/:idUtente', isLoggedIn, async (req, res) => {
   try {
     const controllo = await controlloPuntata(req.params.idUtente, req.params.idEstrazione);
     res.json(controllo);
@@ -197,26 +182,32 @@ app.get('/api/controlloPuntata/:idEstrazione/:idUtente', isLoggedIn, async (req,
   }
 });
 
-/*app.post('/api/controlloPuntata', async (req, res) => {
-  try {
-    const controllo = await controlloPuntata(req.body.idUtente, req.body.idEstrazione);
-    res.json(controllo);
-  } catch {
-    res.status(500).end();
+// - GET `/api/utenti/:idUtente/punti`
+  app.get('/api/utenti/:idUtente/punti', isLoggedIn, 
+    [
+      check('idUtente').isInt({ min: 0 })],
+      async (req, res) => {
+        const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
   }
-});*/
-
-  // - GET `/api/utenti/:idUtente/punti`
-  app.get('/api/utenti/:idUtente/punti', isLoggedIn, async (req, res) => {
     try {
-      const punti = await getPunti(req.params.idUtente);
-      res.status(200).json(punti);
+      const user = await getUserById(req.params.idUtente);
+      res.status(200).json(user.punti);
     } catch {
       res.status(500).end();
     }
   });
 
-  app.get('/api/notificaVincita/:idUtente', isLoggedIn, async (req, res) => { 
+    // - GET `/api/notificaVincita/:idUtente`
+  app.get('/api/notificaVincita/:idUtente', isLoggedIn, 
+    [
+      check('idUtente').isInt({ min: 0 })],
+      async (req, res) => { 
+        const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
     try {
       const notifica = await notificaVincita(req.params.idUtente);
       res.status(200).json(notifica);
@@ -225,7 +216,8 @@ app.get('/api/controlloPuntata/:idEstrazione/:idUtente', isLoggedIn, async (req,
     }
   });
 
-  app.put('/api/notificaLetta', isLoggedIn, async (req, res) => { //OK
+    // - PUT `/api/notificaLetta`
+  app.put('/api/notificaLetta', isLoggedIn, async (req, res) => { 
     try {
       const notifica = await notificaLetta(req.body.idUtente);
       res.status(200).end();
@@ -234,7 +226,7 @@ app.get('/api/controlloPuntata/:idEstrazione/:idUtente', isLoggedIn, async (req,
     }
   });
 
-  // POST /api/sessions -- NEW
+  // POST /api/sessions
 app.post('/api/sessions', function(req, res, next) {
   passport.authenticate('local', (err, user, info) => {
     if (err)
@@ -254,13 +246,7 @@ app.post('/api/sessions', function(req, res, next) {
   })(req, res, next);
 });
 
-/* If we aren't interested in sending error messages... */
-/*app.post('/api/sessions', passport.authenticate('local'), (req, res) => {
-  // req.user contains the authenticated user, we send all the user info back
-  res.status(201).json(req.user);
-});*/
-
-// GET /api/sessions/current -- NEW
+// GET /api/sessions/current 
 app.get('/api/sessions/current', (req, res) => {
   if(req.isAuthenticated()) {
     res.json(req.user);}
@@ -268,7 +254,7 @@ app.get('/api/sessions/current', (req, res) => {
     res.status(401).json({error: 'Not authenticated'});
 });
 
-// DELETE /api/session/current -- NEW
+// DELETE /api/session/current
 app.delete('/api/sessions/current', (req, res) => {
   req.logout(() => {
     res.end();

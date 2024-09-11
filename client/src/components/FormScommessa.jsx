@@ -48,9 +48,8 @@ function FormScommessa(props) {
     if (puntata1 === undefined && puntata2 === undefined && puntata3 === undefined) {
       setError('ATTENZIONE! Devi inserire almeno un numero.');
     } else {
-      const idEstrazione = props.idUltimaEstrazione;
       const idUtente = props.idUtente;
-      const puntata = { idUtente, idEstrazione, puntata1, puntata2, puntata3 };
+      const puntata = { idUtente, puntata1, puntata2, puntata3 };
       console.log(puntata);
       API.aggiungiPuntata(puntata)
         .then(() => {
