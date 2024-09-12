@@ -23,8 +23,7 @@ export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero
   return new Promise((resolve, reject) => {
     const query = 'INSERT INTO estrazioni (numero1, numero2, numero3, numero4, numero5) VALUES (?, ?, ?, ?, ?)';
 
-    //db.run(query, [numero1, numero2, numero3, numero4, numero5], function(err) {
-db.run(query, [1, 2, 3, 4, 5], function(err) {
+    db.run(query, [numero1, numero2, numero3, numero4, numero5], function(err) {
       if (err) {
         reject(err); 
         return;
@@ -199,7 +198,7 @@ db.run(query, [1, 2, 3, 4, 5], function(err) {
 
 // Calcolo punti da sottrarre per una giocata
 export const calcoloSpesa = (puntata1, puntata2, puntata3) => {
-  const numeriPuntata = [puntata1, puntata2, puntata3].filter(num => num !== null);
+  const numeriPuntata = [puntata1, puntata2, puntata3].filter(num => num !== null && num !== undefined);
     
   let punti = 0;
   for(let i = 0; i < numeriPuntata.length; i++) {
@@ -212,7 +211,7 @@ export const calcoloSpesa = (puntata1, puntata2, puntata3) => {
 export const verificaSaldo = async (idUtente, totalePuntate) => {
   try {
   const user = await getUserById(idUtente);
-  
+  console.log(user.punti, totalePuntate);
   if(user.punti >= totalePuntate) {
     return true;
   } else {

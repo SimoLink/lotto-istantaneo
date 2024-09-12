@@ -1,5 +1,6 @@
 const SERVER_URL = 'http://localhost:3001';
 
+// Classifica dei migliori 3
 const getClassifica = async () => {
     const response = await fetch(SERVER_URL + '/api/classifica', {
         credentials: 'include',
@@ -12,6 +13,7 @@ const getClassifica = async () => {
         throw new Error('Internal Server Error');
     }
 
+// Estrazione contenente id, numeri e tempo rimanente
 const getEstrazione = async () => {
     const response = await fetch(SERVER_URL + '/api/estrazioneCorrente', {
         credentials: 'include',
@@ -24,6 +26,7 @@ const getEstrazione = async () => {
         throw new Error('Internal Server Error');
     }
 
+// Nuova puntata
 const aggiungiPuntata = async (puntata) => {
     const response = await fetch(SERVER_URL + '/api/puntate', {
         method: 'POST',
@@ -40,6 +43,7 @@ const aggiungiPuntata = async (puntata) => {
         return null;
     }
 
+// Controllo se la puntata è stata già effettuata
     const controlloPuntata = async (idUtente, idUltimaEstrazione) => {
         const response = await fetch(SERVER_URL + '/api/controlloPuntata/' + idUltimaEstrazione + '/' + idUtente, {
             credentials: 'include'
@@ -52,21 +56,7 @@ const aggiungiPuntata = async (puntata) => {
             throw new Error('Internal Server Error');
         }
 
-    /*const controlloPuntata = async (idUtente, idUltimaEstrazione) => {
-        const response = await fetch(SERVER_URL + '/api/controlloPuntata', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({idUtente: idUtente, idEstrazione: idUltimaEstrazione}),
-        });
-        if(response.ok) {
-            const controlloPuntataJson = await response.json();
-            return controlloPuntataJson;
-        }
-        else 
-            throw new Error('Internal Server Error');
-        }*/
-
-
+// Punti dell'utente
             const getPunti = async (idUtente) => {
                 const response = await fetch(SERVER_URL + '/api/utenti/' + idUtente + '/punti', {
                     credentials: 'include'
@@ -79,7 +69,8 @@ const aggiungiPuntata = async (puntata) => {
                     throw new Error('Internal Server Error');
                 }
 
-                const notificaVincita = async (idUtente) => { //MODIFICA APPENA INTRODUCI LOGIN
+// Notifica vincita
+                const notificaVincita = async (idUtente) => { 
                     const response = await fetch(SERVER_URL + '/api/notificaVincita/' + idUtente, {
                         credentials: 'include'
                     });
@@ -91,23 +82,7 @@ const aggiungiPuntata = async (puntata) => {
                         throw new Error('Internal Server Error');
                     }
 
-                    
-        /*const notificaVincita = async (idUtente) => { //MODIFICA APPENA INTRODUCI LOGIN
-            const response = await fetch(SERVER_URL + '/api/notificaVincita', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({idUtente: idUtente}),
-                credentials: 'include'
-            });
-            if(response.ok) {
-                const notificaVincitaJson = await response.json();
-                return notificaVincitaJson;
-            }
-            else 
-                throw new Error('Internal Server Error');
-            }*/
-        
-
+// Segna notifica come letta
             const notificaLetta = async (idUtente) => {
                 const response = await fetch(SERVER_URL + '/api/notificaLetta', {
                     method: 'PUT',
@@ -123,7 +98,7 @@ const aggiungiPuntata = async (puntata) => {
                     throw new Error('Internal Server Error');
                 }
 
-                // NEW
+/* INIZIO API sessione */
 const logIn = async (credentials) => {
     const response = await fetch(SERVER_URL + '/api/sessions', {
       method: 'POST',
@@ -143,7 +118,6 @@ const logIn = async (credentials) => {
     }
   };
   
-  // NEW
   const getUserInfo = async () => {
     const response = await fetch(SERVER_URL + '/api/sessions/current', {
       credentials: 'include',
@@ -156,7 +130,6 @@ const logIn = async (credentials) => {
     }
   };
   
-  // NEW
   const logOut = async() => {
     const response = await fetch(SERVER_URL + '/api/sessions/current', {
       method: 'DELETE',
@@ -165,6 +138,7 @@ const logIn = async (credentials) => {
     if (response.ok)
       return null;
   }
+/* FINE API sessione */
 
 
 const API = { getClassifica, getEstrazione, aggiungiPuntata, controlloPuntata, notificaVincita, notificaLetta, getPunti, logIn, getUserInfo, logOut };

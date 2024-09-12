@@ -1,4 +1,4 @@
-import { Col, Row, Table } from 'react-bootstrap';
+import { Row, Table } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
 
 function Estrazione(props) {
@@ -21,51 +21,49 @@ function Estrazione(props) {
         </Table>
       </Row>
       <Row>
-          <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} test={props.test} /></h2>
+          <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} reset={props.reset} /></h2>
       </Row>
     </>
   );
 }
 
 function ContoRovescia(props) {
-  const [timeLeft, setTimeLeft] = useState(props.tempoRimanente);
+  const [tempoRimanente, setTempoRimanente] = useState(props.tempoRimanente);
 
   useEffect(() => {
-    // Aggiorna il timeLeft quando cambia props.tempoRimanente
-    setTimeLeft(props.tempoRimanente);
+    // Aggiorna il tempoRimanente quando cambia props.tempoRimanente
+    setTempoRimanente(props.tempoRimanente);
   }, [props.tempoRimanente]);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime > 0) {
-          return prevTime - 1;
+      setTempoRimanente((tempo) => {
+        if (tempo > 0) {
+          return tempo - 1;
         } else {
           clearInterval(timer); // Ferma il timer quando il tempo finisce
-          handleTimeUp(); // Chiama la funzione quando il tempo è scaduto
+          tempoScaduto(); // Chiama la funzione quando il tempo è scaduto
           return 0;
         }
       });
     }, 1000);
 
     return () => clearInterval(timer); // Pulizia dell'intervallo quando il componente viene smontato
-  }, [timeLeft]);
+  }, [tempoRimanente]);
 
-  const handleTimeUp = () => {
-    // Esegui props.test() qui, dopo che il rendering è completato
-    setTimeout(() => {
-      props.test(); // Questo resetterà tempoRimanente dal componente genitore
+  const tempoScaduto = () => {
+    setTimeout(() => { // Questo timeout permette di eseguire il reset del tempo dopo che il rendering di Estrazione è completato
+      props.reset(); // Questo resetterà tempoRimanente dal componente genitore
     }, 0);
   };
 
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  const formatoTimer = (secondi) => {
+    const minuti = Math.floor(secondi / 60);
+    const secondiRimanenti = secondi % 60;
+    return `${minuti}:${secondiRimanenti < 10 ? '0' : ''}${secondiRimanenti}`;
   };
 
-  return <span>{formatTime(timeLeft)}</span>;
+  return <span>{formatoTimer(tempoRimanente)}</span>;
 }
-
 
 export default Estrazione;

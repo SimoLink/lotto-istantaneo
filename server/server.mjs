@@ -158,7 +158,7 @@ app.post('/api/puntate', isLoggedIn, [
 
   try {
     await processoPuntata(idUtente, puntata1, puntata2, puntata3);
-    res.status(201).json({ message: "Bet successfully placed and points updated." });
+    res.status(201).json({ message: "Puntata inserita con successo." });
   } catch (err) {
     res.status(500).json({ errors: [{ msg: err.message }] }); //express-validator usa un array di errori, pertanto seguo la stessa sintassi
   }
@@ -176,7 +176,7 @@ app.get('/api/controlloPuntata/:idEstrazione/:idUtente', isLoggedIn,
 
   try {
     const controllo = await controlloPuntata(req.params.idUtente, req.params.idEstrazione);
-    res.json(controllo);
+    res.status(200).json(controllo);
   } catch {
     res.status(500).end();
   }
@@ -219,10 +219,10 @@ app.get('/api/controlloPuntata/:idEstrazione/:idUtente', isLoggedIn,
     // - PUT `/api/notificaLetta`
   app.put('/api/notificaLetta', isLoggedIn, async (req, res) => { 
     try {
-      const notifica = await notificaLetta(req.body.idUtente);
+      await notificaLetta(req.body.idUtente);
       res.status(200).end();
     } catch {
-      res.status(503).end();
+      res.status(500).end();
     }
   });
 

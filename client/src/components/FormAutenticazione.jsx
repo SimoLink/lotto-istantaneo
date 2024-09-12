@@ -1,4 +1,3 @@
-/* NEW */
 import { useState } from 'react';
 import { Form, Button, Row, Col, Nav, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -18,6 +17,7 @@ function LoginForm(props) {
   return (
     <Row>
       <Col md={6}>
+
           <h5>Regole del gioco</h5>
           <p>
           Ogni giocatore può puntare su 1, 2 o 3 numeri distinti nell'intervallo 1-90. Un giocatore può fare una sola puntata per estrazione.
@@ -30,53 +30,54 @@ function LoginForm(props) {
           La tabella sottostante riassume i punteggi ottenibili nei tre casi, secondo tutte le puntate possibili.
           </p>
           <Table responsive striped bordered>
-      <thead>
-        <tr>
-          <th>Puntata</th>
-          <th>Numeri Indovinati</th>
-          <th>Punti Guadagnati</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>1</td>
-          <td>1</td>
-          <td>10 punti</td>
-        </tr>
-        <tr>
-          <td>2</td>
-          <td>1</td>
-          <td>10 punti</td>
-        </tr>
-        <tr>
-          <td>2</td>
-          <td>2</td>
-          <td>20 punti</td>
-        </tr>
-        <tr>
-          <td>3</td>
-          <td>1</td>
-          <td>10 punti</td>
-        </tr>
-        <tr>
-          <td>3</td>
-          <td>2</td>
-          <td>20 punti</td>
-        </tr>
-        <tr>
-          <td>3</td>
-          <td>3</td>
-          <td>30 punti</td>
-        </tr>
-        <tr>
-          <td>1, 2 o 3</td>
-          <td>0</td>
-          <td>0 punti</td>
-        </tr>
-      </tbody>
-    </Table>
+            <thead>
+              <tr>
+                <th>Puntata</th>
+                <th>Numeri Indovinati</th>
+                <th>Punti Guadagnati</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>10 punti</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>10 punti</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>2</td>
+                <td>20 punti</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>1</td>
+                <td>10 punti</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>2</td>
+                <td>20 punti</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>3</td>
+                <td>30 punti</td>
+              </tr>
+              <tr>
+                <td>1, 2 o 3</td>
+                <td>0</td>
+                <td>0 punti</td>
+              </tr>
+            </tbody>
+          </Table>
           
       </Col>
+
       <Col md={6} className='bg-light p-5 rounded d-flex justify-content-center'>
         <Form className='w-75' onSubmit={handleSubmit}>
           <Form.Group controlId='username' className='mb-3'>
@@ -91,17 +92,12 @@ function LoginForm(props) {
 
           <Button type='submit'>Login</Button>
           <Link className='btn btn-danger mx-2 my-2' to={'/'} >Cancel</Link>
-      </Form>
-    </Col>
-  </Row>
+        </Form>
+      </Col>
+    </Row>
   )
 };
 
-/*function LogoutButton(props) {
-  return(
-    <Button variant='outline-light' onClick={props.logout}>Logout</Button>
-  )
-}*/
 function LogoutButton(props) {
   return (
     <Nav.Link className="fs-4" onClick={props.logout} >

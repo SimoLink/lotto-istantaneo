@@ -50,7 +50,6 @@ function FormScommessa(props) {
     } else {
       const idUtente = props.idUtente;
       const puntata = { idUtente, puntata1, puntata2, puntata3 };
-      console.log(puntata);
       API.aggiungiPuntata(puntata)
         .then(() => {
           setControlloPuntata(true);
@@ -60,7 +59,7 @@ function FormScommessa(props) {
     }
   };
 
-  const renderWarningMessage = () => {
+  const controlloCredito = () => {
     if (budget === 0) {
       return "Credito esaurito, non è possibile giocare.";
     } else if (budget === 5) {
@@ -73,14 +72,14 @@ function FormScommessa(props) {
 
   return (
     <>
-      <Row>
-        <Col md={2}>
-          <h2>Budget attuale: {budget} punti</h2>
+      <Row className="bg-light mt-3">
+        <Col md={3} className="bg-light mt-3">
+          <h2>Il tuo credito: {budget} punti</h2>
         </Col>
-        <Col>
+        <Col md={9}>
           {error && (
             <Row className="mt-4 text-center">
-              <Col md={10}>
+              <Col md={12}>
                 <Alert variant="danger">
                   {error}
                 </Alert>
@@ -92,17 +91,17 @@ function FormScommessa(props) {
             <Row className="mt-4 text-center">
               <Col>
                 <Alert variant="warning">
-                  {renderWarningMessage()}
+                  {controlloCredito()}
                 </Alert>
               </Col>
             </Row>
           ) : (
             <>
-              {renderWarningMessage() && (
+              {controlloCredito() && (
                 <Row className="mt-4 text-center">
                   <Col>
                     <Alert variant="warning">
-                      {renderWarningMessage()}
+                      {controlloCredito()}
                     </Alert>
                   </Col>
                 </Row>
@@ -110,9 +109,9 @@ function FormScommessa(props) {
 
               {!controlloPuntata ? (
                 <>
-                  <Row className="mt-4 text-center">
+                  <Row className="mt-3 text-center">
                     <Col>
-                      <h5>Digita fino a 3 numeri da scommettere per la prossima estrazione:</h5>
+                      <h2>Digita fino a 3 numeri da scommettere per la prossima estrazione:</h2>
                     </Col>
                   </Row>
 
@@ -163,7 +162,7 @@ function FormScommessa(props) {
                       </Col>
                     </Row>
 
-                    <Row className="mt-3 text-center">
+                    <Row className="mt-3 mb-3 text-center">
                       <Col>
                         <Button variant="warning" type="submit" disabled={budget < 5}>
                           Conferma

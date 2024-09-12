@@ -4,6 +4,7 @@ import API from '../API.mjs';
 
 function TabellaClassifica() {
     const [classifica, setClassifica] = useState([]);
+    
     useEffect(() => {
       //recupera i 3 migliori giocatori
       const getClassifica = async () => {
