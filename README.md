@@ -113,7 +113,7 @@
   - response body content: _None_
 
   - response status: `200 OK` (success), `500 Internal Server Error` (generic error), `401 Unauthorized User` (user is not logged in),
-  - GET `/api/sessions/current`
+- GET `/api/sessions/current`
   - request parameters: credenziali per l'autenticazione con password
   - request body: _None_
   - response body content: Restituisce le informazioni dell'utente loggato.
