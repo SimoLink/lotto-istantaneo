@@ -177,7 +177,7 @@
 
 ## Main React Components
 
-- `TabellaClassifica` (in `TabellaClassifica.jsx`): Componente che visualizza la classifica dei migliori tre giocatori. Genera una tabella con le colonne "Posizione", "Username" e "Punti", e mappa i dati recuperati in righe della tabella.
+- `TabellaClassifica` (in `TabellaClassifica.jsx`): Componente che visualizza la classifica dei migliori tre giocatori. Genera una tabella con le colonne "Posizione", "Username" e "Punti".
 - `NavHeader` (in `NavHeader.jsx`): Componente per la barra di navigazione principale del sito. Visualizza il logo "Lotto Istantaneo" e, se l'utente è autenticato, mostra anche un link alla pagina della classifica e un pulsante di logout. Se l'utente non è autenticato, viene visualizzato un link per il login.
 - `LoginForm` (in `FormAutenticazione.jsx`): Componente che contiene un form per permettere agli utenti di autenticarsi. Vengono inoltre mostrate le regole del gioco.
 - `EstrazioneLayout` (in `EstrazioneLayout.jsx`): Componente principale per visualizzare la pagina dell'estrazione, i punti dell'utente ed il form per giocare.
