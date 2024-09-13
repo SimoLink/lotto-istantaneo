@@ -5,7 +5,7 @@ function Estrazione(props) {
   return (
     <>
       <Row>
-        <h2>Ultima estrazione: </h2>
+        <h2>Ultima estrazione:</h2>
       </Row>
       <Row>
         <Table responsive striped bordered>
@@ -49,7 +49,7 @@ function ContoRovescia(props) {
     }, 1000);
 
     return () => clearInterval(timer); // Pulizia dell'intervallo quando il componente viene smontato
-  }, [tempoRimanente]);
+  }, [props.tempoRimanente]);
 
   const tempoScaduto = () => {
     setTimeout(() => { // Questo timeout permette di eseguire il reset del tempo dopo che il rendering di Estrazione è completato

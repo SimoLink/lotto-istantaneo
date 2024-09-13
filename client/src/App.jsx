@@ -31,7 +31,7 @@ const handleLogin = async (credentials) => {
   try {
     const user = await API.logIn(credentials);
     setLoggedIn(true);
-    setMessage({msg: `Welcome, ${user.username}!`, type: 'success'});
+    setMessage({msg: `Benvenuto, ${user.username}!`, type: 'success'});
     setUser(user);
   }catch(err) {
     setMessage({msg: err, type: 'danger'});
@@ -41,7 +41,6 @@ const handleLogin = async (credentials) => {
 const handleLogout = async () => {
   await API.logOut();
   setLoggedIn(false);
-  // clean up everything
   setMessage('');
 };
 

@@ -47,8 +47,7 @@ export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero
       try {
         const puntataEstrazione = await getPuntataEstrazione(idEstrazione);
     
-        if (puntataEstrazione.error) {
-          console.error(puntataEstrazione.error); 
+        if (puntataEstrazione.length === 0) {
           return;
         }
 
@@ -80,8 +79,6 @@ export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero
         db.all(sql, [idEstrazione], (err, rows) => {
           if (err) {
             reject(err); 
-          } else if (rows.length === 0) {
-            resolve({ error: "Nessuna puntata trovata per questa estrazione." }); 
           } else {
             resolve(rows); 
           }
@@ -139,7 +136,6 @@ export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero
           });
         });
       }
-
 
    // Aggiorna i punti di uno specifico utente sovrascrivendo i punti precedenti
    export const aggiornaPunti = (idUtente, puntiAggiornati) => {
@@ -211,7 +207,6 @@ export const calcoloSpesa = (puntata1, puntata2, puntata3) => {
 export const verificaSaldo = async (idUtente, totalePuntate) => {
   try {
   const user = await getUserById(idUtente);
-  console.log(user.punti, totalePuntate);
   if(user.punti >= totalePuntate) {
     return true;
   } else {

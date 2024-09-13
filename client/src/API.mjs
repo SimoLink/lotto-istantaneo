@@ -44,59 +44,58 @@ const aggiungiPuntata = async (puntata) => {
     }
 
 // Controllo se la puntata è stata già effettuata
-    const controlloPuntata = async (idUtente, idUltimaEstrazione) => {
-        const response = await fetch(SERVER_URL + '/api/controlloPuntata/' + idUltimaEstrazione + '/' + idUtente, {
-            credentials: 'include'
-        });
-        if(response.ok) {
-            const controlloPuntataJson = await response.json();
-            return controlloPuntataJson;
-        }
-        else 
-            throw new Error('Internal Server Error');
-        }
+const controlloPuntata = async (idUtente, idUltimaEstrazione) => {
+    const response = await fetch(SERVER_URL + '/api/controlloPuntata/' + idUltimaEstrazione + '/' + idUtente, {
+        credentials: 'include'
+    });
+    if(response.ok) {
+        const controlloPuntataJson = await response.json();
+        return controlloPuntataJson;
+    }
+    else 
+        throw new Error('Internal Server Error');
+    }
 
 // Punti dell'utente
-            const getPunti = async (idUtente) => {
-                const response = await fetch(SERVER_URL + '/api/utenti/' + idUtente + '/punti', {
-                    credentials: 'include'
-                });
-                if(response.ok) {
-                    const puntiJson = await response.json();
-                    return puntiJson;
-                }
-                else 
-                    throw new Error('Internal Server Error');
-                }
+const getPunti = async (idUtente) => {
+    const response = await fetch(SERVER_URL + '/api/utenti/' + idUtente + '/punti', {
+        credentials: 'include'
+    });
+    if(response.ok) {
+        const puntiJson = await response.json();
+        return puntiJson;
+    }
+    else 
+        throw new Error('Internal Server Error');
+    }
 
 // Notifica vincita
-                const notificaVincita = async (idUtente) => { 
-                    const response = await fetch(SERVER_URL + '/api/notificaVincita/' + idUtente, {
-                        credentials: 'include'
-                    });
-                    if(response.ok) {
-                        const notificaVincitaJson = await response.json();
-                        return notificaVincitaJson;
-                    }
-                    else 
-                        throw new Error('Internal Server Error');
-                    }
+const notificaVincita = async (idUtente) => { 
+    const response = await fetch(SERVER_URL + '/api/notificaVincita/' + idUtente, {
+        credentials: 'include'
+    });
+    if(response.ok) {
+        const notificaVincitaJson = await response.json();
+        return notificaVincitaJson;
+    }
+    else 
+        throw new Error('Internal Server Error');
+    }
 
 // Segna notifica come letta
-            const notificaLetta = async (idUtente) => {
-                const response = await fetch(SERVER_URL + '/api/notificaLetta', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({idUtente: idUtente}),
-                    credentials: 'include'
-                });
-                if(response.ok) {
-                    //const notificaLettaJson = await response.json();
-                    return true;
-                }
-                else 
-                    throw new Error('Internal Server Error');
-                }
+const notificaLetta = async (idUtente) => {
+    const response = await fetch(SERVER_URL + '/api/notificaLetta', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({idUtente: idUtente}),
+        credentials: 'include'
+    });
+    if(response.ok) {
+        return true;
+    }
+    else 
+        throw new Error('Internal Server Error');
+    }
 
 /* INIZIO API sessione */
 const logIn = async (credentials) => {
@@ -139,7 +138,6 @@ const logIn = async (credentials) => {
       return null;
   }
 /* FINE API sessione */
-
 
 const API = { getClassifica, getEstrazione, aggiungiPuntata, controlloPuntata, notificaVincita, notificaLetta, getPunti, logIn, getUserInfo, logOut };
 export default API;

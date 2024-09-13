@@ -57,16 +57,14 @@ app.use(session({
 app.use(passport.authenticate('session'));
 
 /* Generazione estrazione e timer di 2 minuti */
-let estrazioneCorrente = null;
-let tempoRimanente = 120; // Tempo iniziale di 2 minuti
-let idUltimaEstrazione = null;
+let tempoRimanente = 120; 
 
 // Funzione per generare una nuova estrazione
 function generaNuovaEstrazione() {
   const estrazione = [];
   while (estrazione.length < 5) {
     const numero = Math.floor(Math.random() * 90) + 1;
-    if (!estrazione.includes(numero)) {
+    if (!estrazione.includes(numero)) { // evito doppioni
       estrazione.push(numero);
     }
   }
@@ -76,22 +74,20 @@ function generaNuovaEstrazione() {
 // Funzione per memorizzare l'estrazione nel database
 async function memorizzaEstrazioneNelDatabase(estrazione) {
   try {
-    idUltimaEstrazione = await inserimentoEstrazione(...estrazione);
-    console.log(`Nuova estrazione generata e memorizzata: ${estrazione}`);
+    await inserimentoEstrazione(...estrazione);
   } catch (err) {
     throw new Error("Errore nell'inserimento dell'estrazione nel db: ", err);
   }
 }
 
-// Funzione eseguita ogni 2 minuti
 function eseguiCicloEstrazione() {
-  estrazioneCorrente = generaNuovaEstrazione();
-  memorizzaEstrazioneNelDatabase(estrazioneCorrente).catch(err => console.error('Errore nel ciclo di estrazione:', err));;
+  const estrazioneCorrente = generaNuovaEstrazione();
+  memorizzaEstrazioneNelDatabase(estrazioneCorrente).catch(err => console.error('Errore nel ciclo di estrazione:', err));
   tempoRimanente = 120; // Reset del timer
 }
 
-// Impostazione del ciclo ogni 2 minuti
-setInterval(eseguiCicloEstrazione, 120000); // 120000 millisecondi = 2 minuti
+// Genera una nuova estrazione ogni 2 minuti
+setInterval(eseguiCicloEstrazione, 120000); 
 
 // Decrementa il tempo rimanente ogni secondo
 setInterval(() => {
