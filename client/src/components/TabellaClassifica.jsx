@@ -22,7 +22,7 @@ function TabellaClassifica() {
         </Col>
       </Row>
       <Row className="justify-content-center mt-4">
-        <Col xs={12} md={8}>
+        <Col>
           <Table responsive striped bordered>
             <thead>
               <tr>

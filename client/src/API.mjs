@@ -7,7 +7,7 @@ const getClassifica = async () => {
     });
     if(response.ok) {
         const classificaJson = await response.json();
-        return classificaJson.map(row => ({ username: row.username, punti: row.punti }));
+        return classificaJson;
     }
     else 
         throw new Error('Internal Server Error');

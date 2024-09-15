@@ -12,7 +12,7 @@ export const classifica = () => {
       } else if (rows.length === 0) {
         resolve({ error: "Nessun utente nel database." });
       } else {
-        resolve(rows.map(row => ({ username: row.username, punti: row.punti })));
+        resolve(rows);
       }
     });
   });
@@ -55,13 +55,15 @@ export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero
         await Promise.all(puntataEstrazione.map(async (row) => {
           try {
             const puntiVinti = calcoloVincita(row); 
-            const user = await getUserById(row.idUtente);
+            if(puntiVinti !== 0) {
+              const user = await getUserById(row.idUtente);
     
-            const puntiAttuali = user.punti;
-    
-            const puntiAggiornati = puntiAttuali + puntiVinti; //Calcola il nuovo saldo
-    
-            await aggiornaPunti(user.id, puntiAggiornati);
+              const puntiAttuali = user.punti;
+      
+              const puntiAggiornati = puntiAttuali + puntiVinti; //Calcola il nuovo saldo
+      
+              await aggiornaPunti(user.id, puntiAggiornati);
+            }
           } catch (err) {
             console.error('Errore durante il calcolo della vincita:', err);
           }
@@ -165,10 +167,8 @@ export const inserimentoEstrazione = (numero1, numero2, numero3, numero4, numero
             reject(err);
             return;
           }
-          else if (row) {
+          else {
             resolve(row);  
-          } else {
-            resolve(null); 
           }
         });
       });
@@ -221,9 +221,14 @@ export const verificaSaldo = async (idUtente, totalePuntate) => {
 export const nuovaPuntata = (idUtente, puntata1, puntata2, puntata3, totalePuntate) => {
   return new Promise(async (resolve, reject) => {
     const ultimaEstrazione = await getUltimaEstrazione();
-
+    let idEstrazioneCorrente = 0;
+  
+    if(ultimaEstrazione) {
+      idEstrazioneCorrente = ultimaEstrazione.id;
+    }
+    
         let sql = 'INSERT INTO puntate(idUtente, idEstrazione, totalePuntate, puntata1, puntata2, puntata3) VALUES(?,?,?,?,?,?)';
-        db.run(sql, [idUtente, ultimaEstrazione.id+1, totalePuntate, puntata1, puntata2, puntata3], function (err) {
+        db.run(sql, [idUtente, idEstrazioneCorrente+1, totalePuntate, puntata1, puntata2, puntata3], function (err) {
           if (err)
             reject(err);
           else

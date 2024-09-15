@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 function Estrazione(props) {
   return (
     <>
-      <Row>
+    {props.idUltimaEstrazione === 0 ? <p className="lead text-center fs-1">Ancora nessuna estrazione. Sii il primo a giocare!</p> : 
+      <><Row>
         <h2>Ultima estrazione:</h2>
       </Row>
       <Row>
         <Table responsive striped bordered>
           <tbody>
-            <tr style={{ fontSize: '2em', textAlign: 'center' }}>
+            <tr className="lead text-center fs-1">
               <td>{props.estrazioneCorrente[0]}</td>
               <td>{props.estrazioneCorrente[1]}</td>
               <td>{props.estrazioneCorrente[2]}</td>
@@ -19,7 +20,7 @@ function Estrazione(props) {
             </tr>
           </tbody>
         </Table>
-      </Row>
+      </Row></>}
       <Row>
           <h2>Prossima estrazione tra: <ContoRovescia tempoRimanente={props.tempoRimanente} reset={props.reset} /></h2>
       </Row>

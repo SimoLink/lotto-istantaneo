@@ -15,7 +15,7 @@ const app = express();
 const port = 3001;
 
 //middleware
-app.use(express.json()); //converte i json in javascript
+app.use(express.json());
 app.use(morgan('dev'));
 const corsOptions = {
   origin: 'http://localhost:5173',
@@ -33,14 +33,17 @@ passport.use(new LocalStrategy(async function verify(username, password, cb) {
   return cb(null, user);
 }));
 
+// L'utente viene salvato nella sessione
 passport.serializeUser(function (user, cb) {
   cb(null, user);
 });
 
+// L'utente viene recuperato dalla sessione
 passport.deserializeUser(function (user, cb) {
   return cb(null,user);
 });
 
+// Per verificare se l'utente è autenticato
 const isLoggedIn = (req, res, next) => {
   if (req.isAuthenticated()) {
     return next();
@@ -114,15 +117,18 @@ app.get('/api/estrazioneCorrente', isLoggedIn, async (req, res) => {
     const ultimaEstrazione = await getUltimaEstrazione();
 
     if (!ultimaEstrazione) {
-      res.status(500).json({ error: 'Nessuna estrazione disponibile al momento.' });
-      return;
+      res.status(200).json({ idUltimaEstrazione: 0,
+        estrazione: [0, 0, 0, 0, 0],
+        tempoRimanente
+       });
+    } else {
+      res.status(200).json({
+        idUltimaEstrazione: ultimaEstrazione.id,
+        estrazione: [ultimaEstrazione.numero1, ultimaEstrazione.numero2, ultimaEstrazione.numero3, ultimaEstrazione.numero4, ultimaEstrazione.numero5],
+        tempoRimanente
+      });
     }
-
-    res.status(200).json({
-      idUltimaEstrazione: ultimaEstrazione.id,
-      estrazione: [ultimaEstrazione.numero1, ultimaEstrazione.numero2, ultimaEstrazione.numero3, ultimaEstrazione.numero4, ultimaEstrazione.numero5],
-      tempoRimanente
-    });
+    
   } catch (error) {
     res.status(500).json({ error: 'Errore interno del server.' });
   }
@@ -259,5 +265,4 @@ app.delete('/api/sessions/current', (req, res) => {
 
 // avvio del server
 app.listen(port, () => {'API server started';
-    eseguiCicloEstrazione(); // Genera subito una prima estrazione all'avvio del server
 });

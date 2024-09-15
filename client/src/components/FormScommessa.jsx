@@ -11,7 +11,7 @@ function FormScommessa(props) {
   const [controlloPuntata, setControlloPuntata] = useState(false);
 
   useEffect(() => {
-    // Recupera l'ultima estrazione
+    // Recupera i punti dell'utente
     const getPunti = async () => {
       const punti = await API.getPunti(props.idUtente);
       setBudget(punti);

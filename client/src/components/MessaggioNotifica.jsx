@@ -42,7 +42,7 @@ function MessaggioNotifica(props) {
         </Modal.Header>
 
         <Modal.Body>
-          {notificaVincita === -1 ? null : notificaVincita > 0 ? (
+          {notificaVincita > 0 ? (
             <Alert variant="success">
               Complimenti, hai vinto! <br />
               Durante l'ultima puntata hai indovinato {numeriIndovinati} numeri e vinto {notificaVincita} punti.

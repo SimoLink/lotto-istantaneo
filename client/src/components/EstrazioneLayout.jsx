@@ -1,5 +1,4 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
 import Estrazione from './Estrazione';
 import { Container } from 'react-bootstrap';
 import FormScommessa from './FormScommessa';
@@ -37,13 +36,13 @@ function EstrazioneLayout(props) {
   return (
     waiting ? (
     <Container fluid className='mt-3'>
-      <Estrazione reset={reset} estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente}/>
+      <Estrazione reset={reset} idUltimaEstrazione={idUltimaEstrazione} estrazioneCorrente={estrazioneCorrente} tempoRimanente={tempoRimanente}/>
       <FormScommessa idUtente={props.user.id} idUltimaEstrazione={idUltimaEstrazione}/> 
       <MessaggioNotifica idUtente={props.user.id} idUltimaEstrazione={idUltimaEstrazione} />
     </Container>
     ) : (
     <Container>
-      <p className='lead text-center' style={{ fontSize: '4em'}}>Pagina in caricamento, attendere...</p>
+      <p className='lead text-center fs-1'>Pagina in caricamento, attendere...</p>
     </Container>)
   );
 }
