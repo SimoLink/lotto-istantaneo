@@ -7,6 +7,7 @@ function FormScommessa(props) {
   const [num2, setNum2] = useState("");
   const [num3, setNum3] = useState("");
   const [budget, setBudget] = useState(0);
+  const [conferma, setConferma] = useState(false);
   const [error, setError] = useState("");
   const [controlloPuntata, setControlloPuntata] = useState(false);
 
@@ -38,6 +39,7 @@ function FormScommessa(props) {
     setNum1("");
     setNum2("");
     setNum3("");
+    setConferma(false);
   };
 
   const handleSubmit = (event) => {
@@ -48,6 +50,7 @@ function FormScommessa(props) {
     if (puntata1 === undefined && puntata2 === undefined && puntata3 === undefined) {
       setError('ATTENZIONE! Devi inserire almeno un numero.');
     } else {
+      setConferma(true);
       const idUtente = props.idUtente;
       const puntata = { idUtente, puntata1, puntata2, puntata3 };
       API.aggiungiPuntata(puntata)
@@ -55,7 +58,9 @@ function FormScommessa(props) {
           setControlloPuntata(true);
           setError("");
         })
-        .catch(err => setError(err.errors[0].msg));
+        .catch(err => {setError(err.errors[0].msg);
+        setConferma(false);}
+      );
     }
   };
 
@@ -164,7 +169,7 @@ function FormScommessa(props) {
 
                     <Row className="mt-3 mb-3 text-center">
                       <Col>
-                        <Button variant="warning" type="submit" disabled={budget < 5}>
+                        <Button variant="warning" type="submit" disabled={conferma || budget < 5}>
                           Conferma
                         </Button>
                       </Col>
