@@ -1,6 +1,5 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/HF0PzDJs)
-# Exam #3: "Lotto Istantaneo"
-## Student: s331059 FENECH SIMONE 
+# "Lotto Istantaneo"
+## Descrizione: [Visualizza il documento](./descrizione_lotto_istantaneo.pdf)
 
 ## React Client Application Routes
 
