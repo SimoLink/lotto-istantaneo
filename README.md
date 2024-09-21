@@ -199,3 +199,13 @@
   - Federico, testtest
   - Silvia, passwordtest
   - Giulia, passwordsegreta
+ 
+ ## Avvio
+- Server
+  - cd server
+  - npm install
+  - nodemon index.mjs
+- Client
+  - cd client
+  - npm install
+  - npm run dev
